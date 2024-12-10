@@ -8,11 +8,20 @@ Este proyecto implementa un motor de búsqueda semántica para artículos cient�
 2. Suficiente espacio en disco (el dataset es grande)
 
 ## Configuración
+0. (Opcional) Crear un venv
+``` bash
+python -m venv .venv_rag
+.\.venv_rag\Scripts\activate
+```
 
 1. Instalar dependencias:
 ```bash
 pip install -r requirements.txt
 ```
+
+2. Instalar dataset
+https://www.kaggle.com/datasets/Cornell-University/arxiv?resource=download 
+El archivo se debe llamar "arxiv-metadata-oai-snapshot.json"
 
 ## Uso
 

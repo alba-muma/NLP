@@ -19,7 +19,7 @@ def load_data(num_samples=1000):
         num_samples: Número de muestras a cargar (None para cargar todo)
     """
     print("Cargando datos del archivo JSON...")
-    with open('arxiv-metadata-oai-snapshot.json', 'r') as file:
+    with open('./bbdd_rag/arxiv-metadata-oai-snapshot.json', 'r') as file:
         data = []
         for i, line in enumerate(file):
             if num_samples is not None and i >= num_samples:
@@ -70,6 +70,7 @@ def main():
         df = load_data(num_samples=10000)
         # Crear índice
         index = create_index(df)
+        df.to_csv('output.csv', index=False)
         
         print("Guardando índice y datos...")
         # Guardar índice

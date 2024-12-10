@@ -21,10 +21,10 @@ class SemanticSearch:
             self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cpu')
             
             print("Cargando índice FAISS...")
-            self.index = faiss.read_index('arxiv_index.faiss')
+            self.index = faiss.read_index('./bbdd_rag/arxiv_index.faiss')
             
             print("Cargando datos...")
-            with open('arxiv_data.pkl', 'rb') as f:
+            with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
                 self.df = pickle.load(f)
             
             print("Sistema inicializado correctamente!")

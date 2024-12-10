@@ -9,22 +9,26 @@ torchvision.disable_beta_transforms_warning()
 torch.cuda.empty_cache()
 
 # Ruta a los archivos descargados
-model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
+model_path = 'C:\\Users\\albam\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
 # Configurar cuantización de 8 bits
-quantization_config = BitsAndBytesConfig(
-    load_in_8bit=True
-)
-
 # Configurar el dispositivo (GPU si está disponible)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
+
+if device == "cuda":
+    from transformers import BitsAndBytesConfig
+    quantization_config = BitsAndBytesConfig(
+        load_in_8bit=True
+    )
+else:
+    quantization_config = None
 
 # Cargar el tokenizador y el modelo
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForCausalLM.from_pretrained(
     model_path,
     quantization_config=quantization_config,
-    device_map="auto"  # Esto manejará automáticamente la asignación de memoria
+    device_map="auto" if device == "cuda" else None  # Esto manejará automáticamente la asignación de memoria
 )
 
 # Asignar eos_token como pad_token

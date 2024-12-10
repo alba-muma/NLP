@@ -1,0 +1,10 @@
+torch
+transformers
+sentence-transformers
+llama_index
+tqdm
+pandas
+faiss-cpu
+torchvision
+accelerate
+bitsandbytes
