@@ -8,3 +8,4 @@ bbdd_rag/output.csv
 bbdd_rag/arxiv_index.faiss
 bbdd_rag/arxiv_data.pkl
 bbdd_rag/arxiv-metadata-oai-snapshot.json
+/nlp_venv

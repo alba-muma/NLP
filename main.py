@@ -1,5 +1,3 @@
-# combined_system.py
-
 from bbdd_rag.create_vector_db import load_data, create_index
 from bbdd_rag.search import SemanticSearch
 from nlp_llm.load_model import generate_text
@@ -7,11 +5,21 @@ import os
 import json
 
 def main():
+    print("Sistema de búsqueda y generación de texto para artículos de arXiv\n")
     # Check if the index exists; otherwise, create it
     if not os.path.exists('./bbdd_rag/arxiv_index.faiss') or not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
         print("Creando índice FAISS y datos...")
-        df = load_data(num_samples=10000)  
-        index = create_index(df)          
+        df = load_data(num_samples=100)  
+        index = create_index(df)    
+        df.to_csv('output.csv', index=False)
+
+        print("Guardando índice y datos...")
+        faiss.write_index(index, 'arxiv_index.faiss')
+        
+        # Guardar datos
+        with open('arxiv_data.pkl', 'wb') as f:
+            pickle.dump(df, f)
+
         print("Datos procesados y almacenados.")
     else:
         print("Índice y datos existentes encontrados.")
@@ -53,4 +61,5 @@ def main():
         print(response)
 
 if __name__ == "__main__":
+    print("Iniciando sistema...")
     main()
