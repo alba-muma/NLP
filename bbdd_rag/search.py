@@ -18,7 +18,7 @@ class SemanticSearch:
             
             print("Cargando modelo...")
             # Usar un modelo más ligero y configurar explícitamente para CPU
-            self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cpu')
+            self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cuda')
             
             print("Cargando índice FAISS...")
             self.index = faiss.read_index('./bbdd_rag/arxiv_index.faiss')
@@ -55,12 +55,15 @@ class SemanticSearch:
             # Obtener los resultados
             results = []
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
+                similarity = 1 / (1 + dist)
+                if similarity < 0.4:
+                    break
                 if idx >= len(self.df):
                     continue
                 article = self.df.iloc[idx]
                 results.append({
                     'rank': i + 1,
-                    'similarity_score': 1 / (1 + dist),
+                    'similarity_score': similarity,
                     'title': article['title'],
                     'abstract': article['abstract'],
                     'categories': article['categories'],

@@ -26,8 +26,8 @@ def load_data(num_samples=1000):
                 break
             paper = json.loads(line)
             data.append({
-                'title': paper['title'],
-                'abstract': paper['abstract'],
+                'title': paper['title'].replace('\n', ' '),
+                'abstract': paper['abstract'].replace('\n', ' '),
                 'categories': paper['categories'],
                 'id': paper['id']
             })
@@ -41,7 +41,11 @@ def create_index(df):
         df: DataFrame con los datos
     """
     print("Inicializando modelo de embeddings...")
-    model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cpu')
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device=device)
     
     print("Generando embeddings para los artículos...")
     embeddings = []
@@ -67,7 +71,7 @@ def create_index(df):
 def main():
     try:
         # Cargar datos
-        df = load_data(num_samples=10000)
+        df = load_data(num_samples=200)
         # Crear índice
         index = create_index(df)
         df.to_csv('output.csv', index=False)

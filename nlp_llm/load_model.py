@@ -6,30 +6,40 @@ import json
 import argparse
 torchvision.disable_beta_transforms_warning()
 
-torch.cuda.empty_cache()
+# Ruta al modelo descargado
+model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
 
-# Ruta a los archivos descargados
-model_path = 'C:\\Users\\albam\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
 # Configurar cuantización de 8 bits
-# Configurar el dispositivo (GPU si está disponible)
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using device: {device}")
+quantization_config = BitsAndBytesConfig(
+    load_in_8bit=True,
+)
 
-if device == "cuda":
-    from transformers import BitsAndBytesConfig
-    quantization_config = BitsAndBytesConfig(
-        load_in_8bit=True
+# Intentar cargar el modelo en GPU con bitsandbytes
+try:
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        device_map="auto",
+        quantization_config=quantization_config
     )
-else:
-    quantization_config = None
+    print('---------CUDA---------')
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+except Exception as e:
+    #print(f"Could not load bitsandbytes native libraryyyyyyyya: {e}")
+    # Cargar el modelo sin bitsandbytes y moverlo a la GPU si es posible
+    model = AutoModelForCausalLM.from_pretrained(model_path)
+    if torch.cuda.is_available():
+        print('---------CUDA---------')
+        model = model.to("cuda")
+        device = "cuda"
+    else:
+        print('---------CPU---------')
+        device = "cpu"
+
+print(f"Model device: {model.device}")
+print(f"Using device: {device}")
 
 # Cargar el tokenizador y el modelo
 tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForCausalLM.from_pretrained(
-    model_path,
-    quantization_config=quantization_config,
-    device_map="auto" if device == "cuda" else None  # Esto manejará automáticamente la asignación de memoria
-)
 
 # Asignar eos_token como pad_token
 tokenizer.pad_token = tokenizer.eos_token
@@ -40,7 +50,12 @@ def read_prompt(prompt_file):
         content = f.read().strip()
     return content
 
-def generate_text(prompt, max_length, max_new_tokens=200):
+def get_input_tokens(full_prompt):
+    # Contar tokens del prompt
+    tokens = tokenizer.encode(full_prompt)
+    return len(tokens)
+
+def generate_text(prompt, max_length, max_new_tokens=500):
     """Genera texto basado en un prompt"""
     # Limpiar y formatear el prompt
     prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
@@ -78,6 +93,10 @@ def generate_text(prompt, max_length, max_new_tokens=200):
     return generated_text.strip()
     
 if __name__ == "__main__":
+
+    # Vaciar la memoria de la GPU
+    torch.cuda.empty_cache()
+
     # Configurar argumentos de línea de comandos
     parser = argparse.ArgumentParser(description='Generate text based on example prompts')
     parser.add_argument('example_number', type=int, help='Example number to use (e.g., 1 for example_1)')
@@ -114,20 +133,12 @@ if __name__ == "__main__":
         user_query + '\n' +
         "Assistant: "
     )
-    # Contar tokens del prompt
-    tokens = tokenizer.encode(full_prompt)
-    print(len(tokens))
 
     print("\nInvestigador:")
     print(query)
-    generated = generate_text(max_length= len(tokens), prompt=full_prompt)
+    generated = generate_text(max_length= get_input_tokens(full_prompt), prompt=full_prompt)
     print('\nPapers:')
     for i, paper in enumerate(papers_dict["papers"], 1):
         print(f'\t{i}. {paper["title"]}. {paper["abstract"]}')
-    start = generated.rfind('User\'s query is in') + len('User\'s query is in ')
-    end = generated.rfind(', I shall answer in this language') 
-    print('\nIdioma detectado: ', generated[start:end].strip())
     print("\nSistema:")
-    # print(generated[len(full_prompt):generated.rfind('<STOP')])
-    start = generated.rfind('I shall answer in this language') + len('I shall answer in this language.')
-    print(generated[start:generated.rfind('<STOP')].strip())
+    print(generated[len(full_prompt):generated.rfind('<STOP')])
