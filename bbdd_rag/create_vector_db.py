@@ -45,7 +45,9 @@ def create_index(df):
         device = "cuda"
     else:
         device = "cpu"
-    model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device=device)
+    # model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device=device)
+    model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+    
     
     print("Generando embeddings para los artículos...")
     embeddings = []

@@ -18,7 +18,8 @@ class SemanticSearch:
             
             print("Cargando modelo...")
             # Usar un modelo más ligero y configurar explícitamente para CPU
-            self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cuda')
+            # self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cuda')
+            self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cuda')
             
             print("Cargando índice FAISS...")
             self.index = faiss.read_index('./bbdd_rag/arxiv_index.faiss')
