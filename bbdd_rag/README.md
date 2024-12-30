@@ -19,7 +19,7 @@ python -m venv .venv_rag
 pip install -r requirements.txt
 ```
 
-2. Instalar dataset
+2. Descargar dataset
 https://www.kaggle.com/datasets/Cornell-University/arxiv?resource=download 
 El archivo se debe llamar "arxiv-metadata-oai-snapshot.json"
 
@@ -29,7 +29,7 @@ El archivo se debe llamar "arxiv-metadata-oai-snapshot.json"
 ```bash
 python create_vector_db.py
 ```
-Este proceso puede tardar varias horas dependiendo de tu hardware y si procesas todo el dataset.
+Este proceso puede tardar varias horas dependiendo de tu hardware y el tamaño del dataset procesado. El resultado será guardado en `arxiv_index.faiss` y `arxiv_data.pkl`.
 
 2. Realizar búsquedas:
 ```bash
@@ -43,9 +43,3 @@ El script de búsqueda te permitirá introducir temas y encontrará los artícul
 - Utilizamos `sentence-transformers` (modelo all-MiniLM-L6-v2) para crear embeddings de los artículos
 - FAISS para almacenamiento y búsqueda eficiente de vectores
 - Los embeddings combinan título y abstract para capturar mejor el contenido del artículo
-
-## Notas
-
-- La primera ejecución descargará automáticamente el dataset de Kaggle (~2GB)
-- Los archivos generados (índice FAISS y datos) pueden ocupar bastante espacio
-- Para pruebas, puedes modificar `num_samples` en `create_vector_db.py`

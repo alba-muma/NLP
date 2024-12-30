@@ -18,14 +18,13 @@ class SemanticSearch:
             
             print("Cargando modelo...")
             # Usar un modelo más ligero y configurar explícitamente para CPU
-            # self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device='cuda')
             self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cuda')
             
             print("Cargando índice FAISS...")
-            self.index = faiss.read_index('./bbdd_rag/arxiv_index.faiss')
+            self.index = faiss.read_index('./arxiv_index.faiss')
             
             print("Cargando datos...")
-            with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
+            with open('./arxiv_data.pkl', 'rb') as f:
                 self.df = pickle.load(f)
             
             print("Sistema inicializado correctamente!")
@@ -43,21 +42,23 @@ class SemanticSearch:
             with torch.no_grad():
                 query_vector = self.model.encode(query, convert_to_numpy=True)
             
-            # Asegurar que el vector es float32 y tiene la forma correcta
-            query_vector = np.array(query_vector, dtype=np.float32).reshape(1, -1)
-            query_norm = query_vector / np.linalg.norm(query_vector)
+            _vector = np.array([query_vector])
+            faiss.normalize_L2(_vector)
             
             print("Buscando coincidencias...")
             # Buscar los k vecinos más cercanos
-            k = min(k, len(self.df))
-            distances, indices = self.index.search(query_norm, k)
+            k = self.index.ntotal
+            distances, indices = self.index.search(_vector, k)
             print(distances)
             
             # Obtener los resultados
             results = []
+            alpha = 0.25  # puedes ajustar este valor según necesites
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
-                similarity = 1 / (1 + dist)
-                if similarity < 0.4:
+                # similarity = 1 / (1 + dist)
+                similarity = np.exp(-alpha * dist)
+                print(similarity)
+                if similarity < 0.7:
                     break
                 if idx >= len(self.df):
                     continue

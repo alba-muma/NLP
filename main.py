@@ -14,9 +14,9 @@ def main():
     # Check if the index exists; otherwise, create it
     if not os.path.exists('./bbdd_rag/arxiv_index.faiss') or not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
         print("Creando índice FAISS y base de datos vectorial...")
-        df = load_data(num_samples=100)  
+        df = load_data(num_samples=50000)  
         index = create_index(df)    
-        df.to_csv('output.csv', index=False)
+        df.to_csv('./bbdd_rag/aoutput.csv', index=False)
 
         print("Guardando índice y datos...")
         faiss.write_index(index, './bbdd_rag/arxiv_index.faiss')
@@ -45,7 +45,7 @@ def main():
             print(f"Traducción al inglés: {query_en}")
             query_for_search = query_en
         else:
-            if len(query.strip()) < 20:
+            if len(query.strip()) < 10:
                 print("\nNota: El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 20 caracteres)")
             elif len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) < 0.4:
                 print("\nNota: El texto contiene muy pocas letras para detectar el idioma de forma fiable (mínimo 40% letras)")
@@ -53,7 +53,7 @@ def main():
 
         # Buscar artículos relevantes
         print("\nBuscando artículos relevantes...")
-        results = searcher.search(query_for_search, k=5)
+        results = searcher.search(query_for_search)
 
         if not results:
             response = "I'm sorry, but I don't have specific papers in the current corpus on this topic. This does not imply that there are none. You can try expanding your search in other databases."

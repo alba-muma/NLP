@@ -19,7 +19,7 @@ def load_data(num_samples=1000):
         num_samples: Número de muestras a cargar (None para cargar todo)
     """
     print("Cargando datos del archivo JSON...")
-    with open('./bbdd_rag/arxiv-metadata-oai-snapshot.json', 'r') as file:
+    with open('./arxiv-metadata-oai-snapshot.json', 'r') as file:
         data = []
         for i, line in enumerate(file):
             if num_samples is not None and i >= num_samples:
@@ -45,7 +45,6 @@ def create_index(df):
         device = "cuda"
     else:
         device = "cpu"
-    # model = SentenceTransformer('paraphrase-MiniLM-L3-v2', device=device)
     model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
     
     
@@ -58,22 +57,22 @@ def create_index(df):
             embedding = model.encode(text, convert_to_numpy=True)
         embeddings.append(embedding)
     
-    # Convertir a numpy array
-    embeddings = np.array(embeddings).astype('float32')
-    norm_embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
+    # Convertir la lista de embeddings a un array de numpy
+    embeddings = np.array(embeddings, dtype='float32')
     
     print("Creando índice FAISS...")
     # Crear índice
-    dimension = norm_embeddings.shape[1]
+    dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
-    index.add(norm_embeddings)
+    faiss.normalize_L2(embeddings)
+    index.add(embeddings)
     
     return index
 
 def main():
     try:
         # Cargar datos
-        df = load_data(num_samples=200)
+        df = load_data(num_samples=50000)
         # Crear índice
         index = create_index(df)
         df.to_csv('output.csv', index=False)
