@@ -6,7 +6,6 @@ st.set_page_config(
     layout="wide"
 )
 from search_engine import SearchEngine
-import time
 
 # Estilos CSS personalizados
 st.markdown("""
@@ -22,12 +21,6 @@ st.markdown("""
         margin-bottom: 1rem;
         height: 100%;
     }
-    .language-info {
-        padding: 0.5rem;
-        background-color: #e1f5fe;
-        border-radius: 0.3rem;
-        margin-bottom: 1rem;
-    }
     .block-container {
         padding-top: 1rem;
         padding-bottom: 0rem;
@@ -40,7 +33,7 @@ st.markdown("""
 def get_search_engine():
     return SearchEngine()
 
-# Título principal (ancho completo)
+# Título principal
 st.title("📚 Buscador de investigación académica")
 st.markdown("---")
 
@@ -55,23 +48,15 @@ with left_col:
     # Procesar la búsqueda y mostrar respuesta del sistema
     if search_button and query:
         with st.spinner("Procesando tu consulta..."):
-            engine = get_search_engine()
-            results = engine.process_query(query)
-            
-            # Mostrar información del idioma si existe
-            if results["language_info"]:
-                with st.container():
-                    if "detected_lang" in results["language_info"]:
-                        st.info(
-                            f"🌐 Idioma detectado: {results['language_info']['detected_lang']} (confianza ≥ 85%)\n\n"
-                            f"Consulta traducida: {results['language_info']['translated_query']}"
-                        )
-                    elif "warning" in results["language_info"]:
-                        st.warning(f"⚠️ {results['language_info']['warning']}")
-            
-            # Mostrar la respuesta del sistema
-            st.markdown("### 💡 Respuesta del Sistema")
-            st.markdown(results["response"])
+            try:
+                engine = get_search_engine()
+                results = engine.process_query(query)
+                
+                # Mostrar la respuesta del sistema
+                st.markdown("### 💡 Análisis y Recomendaciones")
+                st.markdown(results["response"])
+            except Exception as e:
+                st.error(f"Error durante el procesamiento: {str(e)}")
     elif search_button:
         st.warning("⚠️ Por favor, introduce una consulta.")
 
@@ -84,7 +69,6 @@ with right_col:
                 st.markdown(f"""
                 <div class="paper-card">
                     <h4>{paper['title']}</h4>
-                    <p><small>Relevancia: {paper['score']*100:.1f}%</small></p>
                     <p>{paper['abstract']}</p>
                 </div>
                 """, unsafe_allow_html=True)

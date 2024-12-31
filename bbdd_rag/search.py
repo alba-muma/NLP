@@ -16,36 +16,33 @@ class SemanticSearch:
             # Liberar memoria
             gc.collect()
             
-            print("Cargando modelo...")
+            print("Cargando modelo de embeddings...")
             # Usar un modelo más ligero y configurar explícitamente para CPU
             self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cuda')
             
             print("Cargando índice FAISS...")
-            self.index = faiss.read_index('./arxiv_index.faiss')
+            self.index = faiss.read_index('./bbdd_rag/arxiv_index.faiss')
             
-            print("Cargando datos...")
-            with open('./arxiv_data.pkl', 'rb') as f:
+            print("Cargando BBDD...")
+            with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
                 self.df = pickle.load(f)
             
-            print("Sistema inicializado correctamente!")
         except Exception as e:
             print(f"Error durante la inicialización: {str(e)}")
             raise
     
-    def search(self, query, k=50):
+    def search(self, query):
         """
         Busca los k artículos más similares a la consulta
         """
         try:
-            print("Procesando consulta...")
             # Crear embedding de la consulta usando CPU
             with torch.no_grad():
                 query_vector = self.model.encode(query, convert_to_numpy=True)
             
-            _vector = np.array([query_vector])
+            _vector = np.array([query_vector], dtype='float32')
             faiss.normalize_L2(_vector)
             
-            print("Buscando coincidencias...")
             # Buscar los k vecinos más cercanos
             k = self.index.ntotal
             distances, indices = self.index.search(_vector, k)
@@ -58,7 +55,7 @@ class SemanticSearch:
                 # similarity = 1 / (1 + dist)
                 similarity = np.exp(-alpha * dist)
                 print(similarity)
-                if similarity < 0.7:
+                if similarity < 0.71:
                     break
                 if idx >= len(self.df):
                     continue

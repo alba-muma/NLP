@@ -1,10 +1,13 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-import os
 import torchvision
-import json
 import argparse
 torchvision.disable_beta_transforms_warning()
+# Redirigir stderr a null
+import sys
+import os
+stderr = sys.stderr
+sys.stderr = open(os.devnull, 'w')
 
 # Ruta al modelo descargado
 model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
@@ -16,6 +19,7 @@ quantization_config = BitsAndBytesConfig(
 
 # Intentar cargar el modelo en GPU con bitsandbytes
 try:
+    print('Cargando Llama-3.2-1B...')
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         device_map="auto",
@@ -28,15 +32,12 @@ except Exception as e:
     # Cargar el modelo sin bitsandbytes y moverlo a la GPU si es posible
     model = AutoModelForCausalLM.from_pretrained(model_path)
     if torch.cuda.is_available():
-        print('---------CUDA---------')
         model = model.to("cuda")
         device = "cuda"
     else:
-        print('---------CPU---------')
         device = "cpu"
 
-print(f"Model device: {model.device}")
-print(f"Using device: {device}")
+print(f'Llama-3.2-1B cargado en {device}')
 
 # Cargar el tokenizador y el modelo
 tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -55,7 +56,7 @@ def get_input_tokens(full_prompt):
     tokens = tokenizer.encode(full_prompt)
     return len(tokens)
 
-def generate_text(prompt, max_length, max_new_tokens=500):
+def generate_text(prompt, max_length, max_new_tokens=200):
     """Genera texto basado en un prompt"""
     # Limpiar y formatear el prompt
     prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
@@ -135,10 +136,14 @@ if __name__ == "__main__":
     )
 
     print("\nInvestigador:")
-    print(query)
+    # print(query)
     generated = generate_text(max_length= get_input_tokens(full_prompt), prompt=full_prompt)
     print('\nPapers:')
     for i, paper in enumerate(papers_dict["papers"], 1):
         print(f'\t{i}. {paper["title"]}. {paper["abstract"]}')
     print("\nSistema:")
-    print(generated[len(full_prompt):generated.rfind('<STOP')])
+    print(generated[len(full_prompt):generated.rfind('Contribution:')])
+    print(generated[generated.rfind('Contribution:') + len('Contribution: '):generated.rfind('<STOP>')])
+
+    # Restaurar stderr al final
+    sys.stderr = stderr 

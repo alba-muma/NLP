@@ -1,16 +1,15 @@
 import os
-import json
+import re
 import pickle
+import faiss
+import torch
 from bbdd_rag.create_vector_db import load_data, create_index
 from bbdd_rag.search import SemanticSearch
 from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
-import faiss
-import torch
 from language_translation.translation_utils import process_input, process_output
-import re
+from summarization.summarizer import TextSummarizer
 
 def main():
-    print("Sistema de búsqueda y generación de texto para artículos de arXiv\n")
     # Check if the index exists; otherwise, create it
     if not os.path.exists('./bbdd_rag/arxiv_index.faiss') or not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
         print("Creando índice FAISS y base de datos vectorial...")
@@ -27,10 +26,11 @@ def main():
 
         print("Datos procesados y almacenados.")
     else:
-        print("Índice y datos existentes encontrados.")
+        print("Índice y BBDD existentes localizados.")
 
-    # Inicializar sistema de búsqueda
+    # Inicializar sistema de búsqueda y summarizer
     searcher = SemanticSearch()
+    summarizer = TextSummarizer()
 
     # Loop de consultas
     while True:
@@ -46,7 +46,7 @@ def main():
             query_for_search = query_en
         else:
             if len(query.strip()) < 10:
-                print("\nNota: El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 20 caracteres)")
+                print("\nNota: El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 10 palabras). Se asume el inglés.")
             elif len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) < 0.4:
                 print("\nNota: El texto contiene muy pocas letras para detectar el idioma de forma fiable (mínimo 40% letras)")
             query_for_search = query
@@ -56,7 +56,7 @@ def main():
         results = searcher.search(query_for_search)
 
         if not results:
-            response = "I'm sorry, but I don't have specific papers in the current corpus on this topic. This does not imply that there are none. You can try expanding your search in other databases."
+            response = "I'm sorry, but I don't have specific papers on this topic. It seems your research may be novel. However, to ensure it, you can try expanding your search in other databases."
             # Traducir respuesta si la query no estaba en inglés
             if original_lang and original_lang != 'en':
                 response = process_output(response, original_lang)
@@ -80,14 +80,16 @@ def main():
 
         # Crear prompt para el modelo
         papers_dict = {
-            "papers": [{"title": r['title'], "abstract": r['abstract']} for r in results]
+            "papers": [{"title": r['title'], "abstract": summarizer.summarize(r['abstract'])} for r in results[0:2]]
         }
 
         # Vaciar la memoria de la GPU
+        # Liberar memoria GPU
+        del summarizer
         torch.cuda.empty_cache()
         
         # Leer el prompt
-        prompt_base = read_prompt("./nlp_llm/prompts/prompt_0")
+        prompt_base = read_prompt("./nlp_llm/prompts/prompt_1")
         
         # Generar el prompt completo
         user_query = f"{papers_dict}\nUser: {query_for_search}"
@@ -103,17 +105,20 @@ def main():
         # print('-----------------------')
         print('num tokens:', get_input_tokens(full_prompt))
         generated = generate_text(max_length= get_input_tokens(full_prompt), prompt=full_prompt)
-        # print('-----------------------')
-        # print(generated)
-        # print('-----------------------')
+        print('-----------------------')
+        print(generated)
+        print('-----------------------')
         response = generated[generated.rfind('Summary:'):generated.rfind('<STOP>')]
         
         # Traducir respuesta si la query no estaba en inglés
         if original_lang and original_lang != 'en':
             response = process_output(response, original_lang)
         
-        print(f"\n>>> {response}")
+        print(response)
+
+        torch.cuda.empty_cache()
+        # print(f"\n{response[response.rfind('Summary:'):response.rfind('Contribution:')]}")
+        # print(f"\n>>> {response[response.rfind('Contribution:'):response.rfind('<STOP>')]}")
 
 if __name__ == "__main__":
-    print("Iniciando sistema...")
     main()

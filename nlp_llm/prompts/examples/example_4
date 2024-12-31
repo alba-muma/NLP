@@ -1,3 +1,0 @@
-query = "Ich recherchiere über machine learning in healthcare."
-
-papers_dict = {"papers":[{"title": "Deep Learning in Medical Imaging","abstract": "This paper explores applications of neural networks in medical image analysis, focusing on recent advances in radiology and pathology. The authors demonstrate several successful applications in diagnosis and treatment planning."},{"title": "Healthcare Analytics Using ML","abstract": "A comprehensive study of machine learning applications in clinical settings, including predictive analytics for patient outcomes and resource allocation optimization. The paper discusses both successes and implementation challenges."}]}

@@ -28,5 +28,5 @@ Contribution: Your research adds value by focusing on question-and-answer system
 Papers: {"papers":[{"title": "On Advanced Properties of Mathematical Functions", "abstract": "This paper provides a detailed analysis of advanced properties of mathematical functions, including derivations and practical applications."}]}
 User: My query is about the derivations of advanced properties of mathematical functions.
 Summary: The paper 'On Advanced Properties of Mathematical Functions' already provides a detailed analysis of advanced properties and derivations for these functions.
-Contribution: Your input does not appear to add novelty to the existing research. You could explore new angles, such as extending the derivations to higher-dimensional cases or developing new algorithms to compute these properties efficiently.<STOP>
+Contribution: Your research does not appear to add novelty to the existing research. You could explore new angles, such as extending the derivations to higher-dimensional cases or developing new algorithms to compute these properties efficiently.<STOP>
 -- Your turn --
