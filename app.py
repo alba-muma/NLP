@@ -52,6 +52,17 @@ with left_col:
                 engine = get_search_engine()
                 results = engine.process_query(query)
                 
+                # Mostrar información del idioma si existe
+                if results["language_info"]:
+                    if results["language_info"]["detected"]:
+                        st.info(f"""
+                        🌐 **Idioma detectado:** {results["language_info"]["lang"]}
+                        
+                        **Consulta traducida:** {results["language_info"]["translated_query"]}
+                        """)
+                    elif "warning" in results["language_info"]:
+                        st.warning(f"⚠️ {results['language_info']['warning']}")
+                
                 # Mostrar la respuesta del sistema
                 st.markdown("### 💡 Análisis y Recomendaciones")
                 st.markdown(results["response"])

@@ -31,16 +31,28 @@ class SearchEngine:
         # Detectar idioma y traducir si es necesario
         original_lang = None
         query_en = query
+        language_info = {}
         
         # Procesar la consulta si no está en inglés
         if not re.match(r'^[a-zA-Z\s]*$', query):
-            original_lang, query_en = process_input(query)
+            query_en, original_lang = process_input(query)
             query_for_search = query_en
+            language_info = {
+                "detected": True,
+                "lang": original_lang,
+                "translated_query": query_en
+            }
         else:
             if len(query.strip()) < 10:
-                print("\nNota: El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 10 palabras). Se asume el inglés.")
+                language_info = {
+                    "detected": False,
+                    "warning": "El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 10 palabras). Se asume el inglés."
+                }
             elif len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) < 0.4:
-                print("\nNota: El texto contiene muy pocas letras para detectar el idioma de forma fiable (mínimo 40% letras)")
+                language_info = {
+                    "detected": False,
+                    "warning": "El texto contiene muy pocas letras para detectar el idioma de forma fiable (mínimo 40% letras)"
+                }
             query_for_search = query
             
         # Realizar búsqueda semántica
@@ -51,7 +63,7 @@ class SearchEngine:
             # Traducir respuesta si la query no estaba en inglés
             if original_lang and original_lang != 'en':
                 response = process_output(response, original_lang)
-            return {"response": response, "papers": []}
+            return {"response": response, "papers": [], "language_info": language_info}
 
         # Guardar los papers originales con sus scores
         original_papers = []
@@ -84,15 +96,16 @@ class SearchEngine:
         response = generated[generated.rfind('Summary:'):generated.rfind('<STOP>')]
         
         # Traducir respuesta si la query no estaba en inglés
-        if original_lang and original_lang != 'en':
-            response = process_output(response, original_lang)
+        if language_info.get("detected", False):
+            response = process_output(response, language_info["lang"])
 
         torch.cuda.empty_cache()
         
         # Devolver tanto la respuesta como los papers originales
         return {
             "response": response,
-            "papers": original_papers
+            "papers": original_papers,
+            "language_info": language_info
         }
 
     def __del__(self):
