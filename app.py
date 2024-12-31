@@ -69,6 +69,7 @@ with right_col:
                 st.markdown(f"""
                 <div class="paper-card">
                     <h4>{paper['title']}</h4>
+                    <p><small>Similitud: {paper['similarity']*100:.1f}%</small></p>
                     <p>{paper['abstract']}</p>
                 </div>
                 """, unsafe_allow_html=True)

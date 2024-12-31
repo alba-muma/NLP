@@ -52,7 +52,6 @@ class SemanticSearch:
             results = []
             alpha = 0.25  # puedes ajustar este valor según necesites
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
-                # similarity = 1 / (1 + dist)
                 similarity = np.exp(-alpha * dist)
                 print(similarity)
                 if similarity < 0.71:
@@ -62,7 +61,8 @@ class SemanticSearch:
                 article = self.df.iloc[idx]
                 results.append({
                     'rank': i + 1,
-                    'similarity_score': similarity,
+                    'similarity': similarity,
+                    'distance': dist,
                     'title': article['title'],
                     'abstract': article['abstract'],
                     'categories': article['categories'],
@@ -99,7 +99,8 @@ def main():
                 print("-" * 80)
                 for result in results:
                     print(f"\n{result['rank']}. {result['title']}")
-                    print(f"Score de similitud: {result['similarity_score']:.3f}")
+                    print(f"Score de similitud: {result['similarity']:.3f}")
+                    print(f"Distancia: {result['distance']:.3f}")
                     print(f"Categorías: {result['categories']}")
                     print(f"ID: {result['id']}")
                     # Mostrar solo los primeros 200 caracteres del abstract

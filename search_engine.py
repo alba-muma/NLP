@@ -3,6 +3,7 @@ import re
 import pickle
 import faiss
 import torch
+import numpy as np
 from bbdd_rag.create_vector_db import load_data, create_index
 from bbdd_rag.search import SemanticSearch
 from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
@@ -52,8 +53,15 @@ class SearchEngine:
                 response = process_output(response, original_lang)
             return {"response": response, "papers": []}
 
-        # Guardar los papers originales
-        original_papers = results
+        # Guardar los papers originales con sus scores
+        original_papers = []
+        for r in results:
+            paper_with_score = {
+                'title': r['title'],
+                'abstract': r['abstract'],
+                'similarity': r['similarity']
+            }
+            original_papers.append(paper_with_score)
 
         # Crear prompt para el modelo con resúmenes
         papers_dict = {
