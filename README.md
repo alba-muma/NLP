@@ -1,6 +1,10 @@
-# ArXiv Search Engine
+# 📚 Buscador de investigación académica
 
-Este proyecto implementa un motor de búsqueda semántica para artículos científicos de arXiv utilizando embeddings y una base de datos vectorial FAISS.
+Este proyecto implementa un motor de búsqueda semántica para artículos científicos de arXiv utilizando embeddings y una base de datos vectorial FAISS. Se proporciona una interfaz de usuario para realizar búsquedas y visualizar la base de datos vectorial. El sistema está preparado para procesar consultas en cualquier idioma y responder en el idioma de la consulta. El resultado de la búsqueda muestra:
+- Artículos relevantes basados en similitud semántica y su medida de similitud.
+- Diferencias entre la línea de investigación del usuario y los artículos relevantes.
+- Resumen de los artículos.
+- Visualización de tópicos o categorías asociadas a los artículos.
 
 ## Requisitos
 

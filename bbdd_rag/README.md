@@ -1,6 +1,6 @@
 # ArXiv Search Engine
 
-Este proyecto implementa un motor de búsqueda semántica para artículos científicos de arXiv utilizando embeddings y una base de datos vectorial FAISS.
+Este módulo implementa un motor de búsqueda semántica para artículos científicos de arXiv utilizando embeddings y una base de datos vectorial FAISS.
 
 ## Descargar dataset
 https://www.kaggle.com/datasets/Cornell-University/arxiv?resource=download 
