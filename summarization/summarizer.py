@@ -9,23 +9,39 @@ class TextSummarizer:
         self.model = BartForConditionalGeneration.from_pretrained('facebook/bart-large-cnn').to(self.device)
         print(f"BART cargado en {self.device}")
 
-    def summarize(self, text, max_length=50, min_length=20):
-        # Tokenizar el texto
-        inputs = self.tokenizer.encode("summarize: " + text, 
-                                     return_tensors='pt', 
-                                     max_length=1024, 
-                                     truncation=True).to(self.device)
+    def summarize(self, text, max_length=150, min_length=50):
+        """
+        Summarize the given text using BART model
+        """
+        inputs = self.tokenizer(text, max_length=1024, truncation=True, return_tensors="pt").to(self.device)
         
-        # Generar el resumen
-        summary_ids = self.model.generate(inputs,
-                                        max_length=max_length,
-                                        min_length=min_length,
-                                        length_penalty=2.0,
-                                        num_beams=4,
-                                        early_stopping=True)
-        
-        # Decodificar y retornar el resumen
+        summary_ids = self.model.generate(
+            inputs["input_ids"], 
+            num_beams=4,
+            max_length=max_length,
+            min_length=min_length,
+            length_penalty=2.0,
+            early_stopping=True,
+            no_repeat_ngram_size=3,
+            repetition_penalty=1.5,
+            pad_token_id=self.tokenizer.pad_token_id,
+            bos_token_id=self.tokenizer.bos_token_id,
+            eos_token_id=self.tokenizer.eos_token_id,
+        )
+
         summary = self.tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        
+        # Asegurar que el resumen termine en punto
+        if not summary.endswith('.'):
+            # Encontrar el último punto
+            last_period = summary.rfind('.')
+            if last_period != -1:
+                # Si hay un punto, cortar hasta ahí
+                summary = summary[:last_period + 1]
+            else:
+                # Si no hay punto, añadir uno
+                summary = summary.rstrip() + '.'
+        
         return summary
 
 # Ejemplo de uso

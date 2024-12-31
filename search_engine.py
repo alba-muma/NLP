@@ -93,7 +93,7 @@ class SearchEngine:
         
         # Generar respuesta
         generated = generate_text(max_length=get_input_tokens(full_prompt), prompt=full_prompt)
-        response = generated[generated.rfind('Summary:'):generated.rfind('<STOP>')]
+        response = generated[generated.rfind('Contribution:') + len('Contribution: '):generated.rfind('<STOP>')]
         
         # Traducir respuesta si la query no estaba en inglés
         if language_info.get("detected", False):

@@ -4,7 +4,7 @@ Este proyecto implementa un motor de búsqueda semántica para artículos cient�
 
 ## Requisitos
 
-1. Python 3.8+
+1. Python 3.10+
 2. Suficiente espacio en disco (el dataset es grande)
 
 ## Configuración

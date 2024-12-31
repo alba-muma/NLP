@@ -64,7 +64,7 @@ with left_col:
                         st.warning(f"⚠️ {results['language_info']['warning']}")
                 
                 # Mostrar la respuesta del sistema
-                st.markdown("### 💡 Análisis y Recomendaciones")
+                st.markdown("### 💡 Diferencias respecto a trabajos existentes")
                 st.markdown(results["response"])
             except Exception as e:
                 st.error(f"Error durante el procesamiento: {str(e)}")
