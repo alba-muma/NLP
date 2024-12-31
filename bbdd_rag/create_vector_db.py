@@ -1,12 +1,15 @@
 import json
+import pickle
+import os
+import torch
+import sys
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
 from tqdm import tqdm
-import pickle
-import os
-import torch
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from summarization.summarizer import TextSummarizer
 
 # Forzar el uso de CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
@@ -19,15 +22,18 @@ def load_data(num_samples=1000):
         num_samples: Número de muestras a cargar (None para cargar todo)
     """
     print("Cargando datos del archivo JSON...")
-    with open('./arxiv-metadata-oai-snapshot.json', 'r') as file:
+    summarizer = TextSummarizer()
+    with open('./bbdd_rag/arxiv-metadata-oai-snapshot.json', 'r') as file:
         data = []
         for i, line in enumerate(file):
             if num_samples is not None and i >= num_samples:
                 break
             paper = json.loads(line)
+            abstract = paper['abstract'].replace('\n', ' ') 
             data.append({
                 'title': paper['title'].replace('\n', ' '),
-                'abstract': paper['abstract'].replace('\n', ' '),
+                'abstract': abstract,
+                'summary': summarizer.summarize(abstract),
                 'categories': paper['categories'],
                 'id': paper['id']
             })
@@ -79,10 +85,10 @@ def main():
         
         print("Guardando índice y datos...")
         # Guardar índice
-        faiss.write_index(index, 'arxiv_index.faiss')
+        faiss.write_index(index, './bbdd_rag/arxiv_index.faiss')
         
         # Guardar datos
-        with open('arxiv_data.pkl', 'wb') as f:
+        with open('./bbdd_rag/arxiv_data.pkl', 'wb') as f:
             pickle.dump(df, f)
         
         print("¡Proceso completado exitosamente!")

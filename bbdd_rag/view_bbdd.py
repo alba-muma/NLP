@@ -16,7 +16,7 @@ def view_articles():
             print(f"Título: {article['title']}")
             print(f"ID: {article['id']}")
             print(f"Categorías: {article['categories']}")
-            print(f"Abstract: {article['abstract'][:200]}...")  # Mostrar solo los primeros 200 caracteres
+            print(f"Summary: {article['summary']}")
             print("-" * 100)
 
     except FileNotFoundError:

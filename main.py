@@ -71,16 +71,12 @@ def main():
             print(f"Score de similitud: {result['similarity_score']:.3f}")
             print(f"Categorías: {result['categories']}")
             print(f"ID: {result['id']}")
-            # Mostrar solo los primeros 200 caracteres del abstract
-            abstract = result['abstract'][:200]
-            if len(result['abstract']) > 200:
-                abstract += "..."
-            print(f"Abstract: {abstract}")
+            print(f"Summary: {result['summary']}")
             print("-" * 80)
 
         # Crear prompt para el modelo
         papers_dict = {
-            "papers": [{"title": r['title'], "abstract": summarizer.summarize(r['abstract'])} for r in results[0:2]]
+            "papers": [{"title": r['title'], "abstract": r['summary']} for r in results[0:2]]
         }
 
         # Vaciar la memoria de la GPU

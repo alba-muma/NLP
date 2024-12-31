@@ -17,7 +17,6 @@ class SemanticSearch:
             gc.collect()
             
             print("Cargando modelo de embeddings...")
-            # Usar un modelo más ligero y configurar explícitamente para CPU
             self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cuda')
             
             print("Cargando índice FAISS...")
@@ -65,6 +64,7 @@ class SemanticSearch:
                     'distance': dist,
                     'title': article['title'],
                     'abstract': article['abstract'],
+                    'summary': article['summary'],
                     'categories': article['categories'],
                     'id': article['id']
                 })

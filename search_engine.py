@@ -71,6 +71,7 @@ class SearchEngine:
             paper_with_score = {
                 'title': r['title'],
                 'abstract': r['abstract'],
+                'summary': r['summary'],
                 'similarity': r['similarity']
             }
             original_papers.append(paper_with_score)
