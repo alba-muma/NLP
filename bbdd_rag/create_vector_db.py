@@ -8,12 +8,27 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
 from tqdm import tqdm
+from joblib import Parallel, delayed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from summarization.summarizer import TextSummarizer
 
 # Forzar el uso de CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 torch.set_num_threads(1)
+summarizer = TextSummarizer()
+
+
+def parallel_summarize(abstracts, num_gpus, batch_size):
+    def summarize_batch(abstracts_batch):
+        summaries = []
+        for abstract in tqdm(abstracts_batch):
+            summary = summarizer.summarize(abstract)
+            summaries.append(summary)
+        return summaries
+
+    batches = [abstracts[i:i+batch_size] for i in range(0, len(abstracts), batch_size)]
+    summaries = Parallel(n_jobs=num_gpus)(delayed(summarize_batch)(batch) for batch in batches)
+    return [summary for batch in summaries for summary in batch]
 
 def load_data(num_samples=1000):
     """
@@ -22,23 +37,38 @@ def load_data(num_samples=1000):
         num_samples: Número de muestras a cargar (None para cargar todo)
     """
     print("Cargando datos del archivo JSON...")
-    summarizer = TextSummarizer()
     with open('./bbdd_rag/arxiv-metadata-oai-snapshot.json', 'r') as file:
         data = []
+        abstracts = []
         for i, line in enumerate(file):
             if num_samples is not None and i >= num_samples:
                 break
             paper = json.loads(line)
-            abstract = paper['abstract'].replace('\n', ' ') 
+            abstract = paper['abstract'].replace('\n', ' ')
+            abstracts.append(abstract)
             data.append({
                 'title': paper['title'].replace('\n', ' '),
                 'abstract': abstract,
-                'summary': summarizer.summarize(abstract),
                 'categories': paper['categories'],
                 'id': paper['id']
             })
+
+        # Procesar resúmenes en paralelo
+        print("Generando resúmenes en paralelo...")
+        batch_size = 50  # Ajusta según tu GPU
+        num_gpus = 1 #torch.cuda.device_count()
+        print(f"Usando {num_gpus} GPUs")
+        
+        summaries = parallel_summarize(abstracts, num_gpus=num_gpus, batch_size=batch_size)
+        
+        # Añadir resúmenes a los datos
+        for i, summary in enumerate(summaries):
+            data[i]['summary'] = summary
+
+        print("Convirtiendo a DataFrame...")
+        df = pd.DataFrame(data)
     
-    return pd.DataFrame(data)
+    return df
 
 def create_index(df):
     """
