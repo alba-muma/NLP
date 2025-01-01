@@ -12,31 +12,13 @@ from joblib import Parallel, delayed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from summarization.summarizer import TextSummarizer
 
-# Forzar el uso de CPU
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-torch.set_num_threads(1)
-summarizer = TextSummarizer()
-
-
-def parallel_summarize(abstracts, num_gpus, batch_size):
-    def summarize_batch(abstracts_batch):
-        summaries = []
-        for abstract in tqdm(abstracts_batch):
-            summary = summarizer.summarize(abstract)
-            summaries.append(summary)
-        return summaries
-
-    batches = [abstracts[i:i+batch_size] for i in range(0, len(abstracts), batch_size)]
-    summaries = Parallel(n_jobs=num_gpus)(delayed(summarize_batch)(batch) for batch in batches)
-    return [summary for batch in summaries for summary in batch]
-
-def load_data(num_samples=1000):
+def load_data(num_samples=5000):
     """
     Carga los datos del archivo JSON y los convierte en un DataFrame
     Args:
         num_samples: Número de muestras a cargar (None para cargar todo)
     """
-    print("Cargando datos del archivo JSON...")
+    print(f"Cargando {num_samples if num_samples else 'todos los'} artículos del archivo JSON...")
     with open('./bbdd_rag/arxiv-metadata-oai-snapshot.json', 'r') as file:
         data = []
         abstracts = []
@@ -55,11 +37,19 @@ def load_data(num_samples=1000):
 
         # Procesar resúmenes en paralelo
         print("Generando resúmenes en paralelo...")
-        batch_size = 50  # Ajusta según tu GPU
-        num_gpus = 1 #torch.cuda.device_count()
-        print(f"Usando {num_gpus} GPUs")
+        batch_size = 4  # Tamaño de lote reducido para evitar problemas de memoria
         
-        summaries = parallel_summarize(abstracts, num_gpus=num_gpus, batch_size=batch_size)
+        # Inicializar summarizer
+        summarizer = TextSummarizer()
+        
+        # Procesar todos los abstracts en lotes
+        summaries = summarizer.process_batch(
+            abstracts,
+            batch_size=batch_size,
+            ratio=0.5,
+            min_length=20,
+            show_progress=True
+        )
         
         # Añadir resúmenes a los datos
         for i, summary in enumerate(summaries):
