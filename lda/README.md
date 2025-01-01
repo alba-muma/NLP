@@ -1,3 +1,9 @@
+# Módulo de LDA (Latent Dirichlet Allocation)
+
+Este módulo implementa el análisis de tópicos utilizando LDA (Latent Dirichlet Allocation).
+
+## Características
+
 - Topic_Modelling incluye el notebook para hacer el LDA, sin la parte de añadir los main_topics a cada paper, pero permite hacer grafos en Colab.
 - Topic_Modelling_sin_grafo incluye el notebook para hacer LDA y los main_topics de cada paper, no permite hacer grafos en Colab porque se alcanza el límite de RAM.
 
