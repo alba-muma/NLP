@@ -65,7 +65,7 @@ class SemanticSearch:
                     'title': article['title'],
                     'abstract': article['abstract'],
                     'summary': article['summary'],
-                    'categories': article['categories'],
+                    'main_topics': article['main_topics'],
                     'id': article['id']
                 })
             

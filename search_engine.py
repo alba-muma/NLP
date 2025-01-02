@@ -8,7 +8,6 @@ from bbdd_rag.create_vector_db import load_data, create_index
 from bbdd_rag.search import SemanticSearch
 from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
 from language_translation.translation_utils import process_input, process_output
-from summarization.summarizer import TextSummarizer
 
 class SearchEngine:
     def __init__(self):
@@ -25,7 +24,6 @@ class SearchEngine:
         
         # Inicializar sistema de búsqueda y summarizer
         self.searcher = SemanticSearch()
-        self.summarizer = TextSummarizer()
 
     def process_query(self, query):
         # Detectar idioma y traducir si es necesario
@@ -33,8 +31,10 @@ class SearchEngine:
         query_en = query
         language_info = {}
         
-        # Procesar la consulta si no está en inglés
-        if not re.match(r'^[a-zA-Z\s]*$', query):
+        # Procesar la consulta
+        cond_1 = len(query.strip()) >= 20
+        cond_2 = len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) >= 0.4
+        if cond_1 and cond_2:
             query_en, original_lang = process_input(query)
             query_for_search = query_en
             language_info = {
@@ -43,15 +43,15 @@ class SearchEngine:
                 "translated_query": query_en
             }
         else:
-            if len(query.strip()) < 10:
+            if not cond_1:
                 language_info = {
                     "detected": False,
-                    "warning": "El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 10 palabras). Se asume el inglés."
+                    "warning": "El texto es demasiado corto para detectar el idioma de forma fiable. Se asume el inglés."
                 }
-            elif len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) < 0.4:
+            elif not cond_2:
                 language_info = {
                     "detected": False,
-                    "warning": "El texto contiene muy pocas letras para detectar el idioma de forma fiable (mínimo 40% letras)"
+                    "warning": "El texto contiene muy pocas letras para detectar el idioma de forma fiable."
                 }
             query_for_search = query
             
@@ -72,17 +72,17 @@ class SearchEngine:
                 'title': r['title'],
                 'abstract': r['abstract'],
                 'summary': r['summary'],
-                'similarity': r['similarity']
+                'similarity': r['similarity'],
+                'main_topics': r['main_topics']
             }
             original_papers.append(paper_with_score)
 
         # Crear prompt para el modelo con resúmenes
         papers_dict = {
-            "papers": [{"title": r['title'], "abstract": self.summarizer.summarize(r['abstract'])} for r in results[0:2]]
+            "papers": [{"title": r['title'], "summary": r['summary']} for r in results[0:2]]
         }
 
         # Vaciar la memoria de la GPU
-        del self.summarizer
         torch.cuda.empty_cache()
         
         # Leer el prompt

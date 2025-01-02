@@ -80,8 +80,9 @@ with right_col:
                 st.markdown(f"""
                 <div class="paper-card">
                     <h4>{paper['title']}</h4>
-                    <p><small>Similitud: {paper['similarity']*100:.1f}%</small></p>
-                    <p>Abstract:{paper['abstract']}</p>
-                    <p>Summary:{paper['summary']}</p>
+                    <p><small><strong>Similitud</strong>: {paper['similarity']*100:.1f}%</small></p>
+                    <p><strong>Abstract</strong>: {paper['abstract'][0:150]}...</p>
+                    <p><strong>Resumen</strong>: {paper['summary']}</p>
+                    <p><strong>Categorías</strong>: <strong>{paper['main_topics']}</strong></p>
                 </div>
                 """, unsafe_allow_html=True)

@@ -1,4 +1,4 @@
-from langdetect import detect
+from langdetect import detect_langs
 from transformers import MarianMTModel, MarianTokenizer
 
 class Translator:
@@ -12,9 +12,10 @@ class Translator:
         Returns the language code (e.g., 'es' for Spanish, 'fr' for French)
         """
         try:
-            return detect(text)
+            deteccion = detect_langs(text)[0]
+            return deteccion.lang, deteccion.prob
         except:
-            return None
+            return None, 0
     
     def load_model(self, source_lang):
         """
@@ -63,9 +64,9 @@ def main():
             break
         
         # Detect language
-        detected_lang = translator.detect_language(text)
+        detected_lang, confidence = translator.detect_language(text)
         if detected_lang:
-            print(f"\nDetected language: {detected_lang}")
+            print(f"\nDetected language: {detected_lang} con confianza de {confidence}")
             
             # If text is already in English, no need to translate
             if detected_lang == 'en':

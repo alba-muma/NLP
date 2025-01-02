@@ -8,7 +8,6 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
 from tqdm import tqdm
-from joblib import Parallel, delayed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from summarization.summarizer import TextSummarizer
 
@@ -97,19 +96,24 @@ def create_index(df):
 
 def main():
     try:
-        # Cargar datos
-        df = load_data(num_samples=50000)
+        if not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
+            # Cargar datos
+            df = load_data(num_samples=50000)
+            # Guardar datos en pickle y csv
+            with open('./bbdd_rag/arxiv_data.pkl', 'wb') as f:
+                pickle.dump(df, f)
+            df.to_csv('./bbdd_rag/output.csv', index=False)
+        else:
+            # Cargar datos desde el archivo
+            with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
+                df = pickle.load(f)
+        
         # Crear índice
         index = create_index(df)
-        df.to_csv('output.csv', index=False)
-        
+    
         print("Guardando índice y datos...")
         # Guardar índice
         faiss.write_index(index, './bbdd_rag/arxiv_index.faiss')
-        
-        # Guardar datos
-        with open('./bbdd_rag/arxiv_data.pkl', 'wb') as f:
-            pickle.dump(df, f)
         
         print("¡Proceso completado exitosamente!")
         print(f"Número de artículos procesados: {len(df)}")
