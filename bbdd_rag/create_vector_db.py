@@ -77,7 +77,8 @@ def create_index(df):
     embeddings = []
     for _, row in tqdm(df.iterrows(), total=len(df)):
         # Combinar título y abstract para el embedding
-        text = f"{row['title']} {row['abstract']}"
+        # text = f"{row['title']} {row['abstract']}"
+        text = f"{row['title']}. {', '.join(row['keywords'])}"
         with torch.no_grad():
             embedding = model.encode(text, convert_to_numpy=True)
         embeddings.append(embedding)

@@ -1,0 +1,11 @@
+query = "I am looking for research papers on Supervised Machine Learning"
+
+papers_dict = {"papers":[
+    {
+    "title": "Learning from dependent observations",
+    "summary": "In most papers establishing consistency for learning algorithms it is assumed that the observations used for training are realizations of an i.i.d. process."
+    },{
+        "title": "Kernels and Ensembles: Perspectives on Statistical Learning",
+        "summary": "The support vector machine and the AdaBoost algorithm have spawned a wave of research in statistical machine learning. Much of this new research falls into one of two broad categories: kernel methods and ensemble methods. I present two recent algorithms that I have invented with my collaborators: LAGO, a fast kernel algorithm for unbalanced classification and rare target detection."
+        }
+    ]}

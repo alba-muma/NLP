@@ -1,0 +1,12 @@
+query = "I am researching about LHC and black holes."
+
+papers_dict = {"papers":[
+    {
+    "title": "Black Holes at the LHC",
+    "summary": "We will address the topic of the creation of small black holes during particle collisions in a ground-based accelerator, such as LHC. The most important observable effect associated with their creation is likely to be the emission of Hawking radiation during their evaporation process. We will finish with a discussion of the methodology that will be used to study these spectra."
+    },
+    {
+        "title": "Signatures of black holes at the LHC",
+        "summary": "Event simulations are carried out with the Fortran Monte Carlo generator CATFISH. Inelasticity effects, exact field emissivities, color and charge conservation are included in the analysis."
+    }
+    ]}

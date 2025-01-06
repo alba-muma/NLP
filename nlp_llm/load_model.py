@@ -6,8 +6,9 @@ torchvision.disable_beta_transforms_warning()
 # Redirigir stderr a null
 import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 stderr = sys.stderr
-sys.stderr = open(os.devnull, 'w')
+# sys.stderr = open(os.devnull, 'w')
 
 # Ruta al modelo descargado
 model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
@@ -25,7 +26,6 @@ try:
         device_map="auto",
         quantization_config=quantization_config
     )
-    print('---------CUDA---------')
     device = "cuda" if torch.cuda.is_available() else "cpu"
 except Exception as e:
     #print(f"Could not load bitsandbytes native libraryyyyyyyya: {e}")
@@ -56,7 +56,7 @@ def get_input_tokens(full_prompt):
     tokens = tokenizer.encode(full_prompt)
     return len(tokens)
 
-def generate_text(prompt, max_length, max_new_tokens=200):
+def generate_text(prompt, max_length, max_new_tokens=150):
     """Genera texto basado en un prompt"""
     # Limpiar y formatear el prompt
     prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
@@ -76,12 +76,12 @@ def generate_text(prompt, max_length, max_new_tokens=200):
         max_new_tokens=max_new_tokens,
         num_return_sequences=1,
         temperature=0.2,
+        # top_p=0.9,
         num_beams=3,
         do_sample=True,
-        # top_p=0.95,
         pad_token_id=tokenizer.pad_token_id,
         eos_token_id=tokenizer.eos_token_id,
-        # early_stopping=True,
+        early_stopping=True,
         # length_penalty=-0.5,
         # repetition_penalty=1.5,
         tokenizer=tokenizer,
@@ -104,10 +104,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # Leer el prompt
-    prompt_base = read_prompt("./prompts/prompt_0")
+    prompt_base = read_prompt("./nlp_llm/prompts/prompt_2")
     
     # Leer el ejemplo específico
-    example_path = f"./prompts/examples/example_{args.example_number}"
+    example_path = f"./nlp_llm/prompts/examples/example_{args.example_number}"
     try:
         with open(example_path, 'r', encoding='utf-8') as f:
             example_content = f.read()
@@ -132,18 +132,24 @@ if __name__ == "__main__":
         prompt_base + '\n' +
         "Papers: " + 
         user_query + '\n' +
-        "Assistant: "
+        "Response: "
     )
 
     print("\nInvestigador:")
-    # print(query)
+    print(query)
     generated = generate_text(max_length= get_input_tokens(full_prompt), prompt=full_prompt)
     print('\nPapers:')
     for i, paper in enumerate(papers_dict["papers"], 1):
-        print(f'\t{i}. {paper["title"]}. {paper["abstract"]}')
+        print(f'\t{i}. {paper["title"]}. {paper["summary"]}')
     print("\nSistema:")
-    print(generated[len(full_prompt):generated.rfind('Contribution:')])
-    print(generated[generated.rfind('Contribution:') + len('Contribution: '):generated.rfind('<STOP>')])
+    if generated.rfind('<STOP>') == -1:
+        print('1')
+        print(generated)
+    elif generated.rfind('Response:') == -1:
+        print('2')
+        print(generated)
+    else:
+        print(generated[len(full_prompt)-2:generated.rfind('<STOP>')])
 
     # Restaurar stderr al final
     sys.stderr = stderr 

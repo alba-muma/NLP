@@ -1,3 +1,11 @@
 query = "I am researching about machine learning in healthcare."
 
-papers_dict = {"papers":[{"title": "Deep Learning in Medical Imaging","abstract": "This paper explores applications of neural networks in medical image analysis, focusing on recent advances in radiology and pathology. The authors demonstrate several successful applications in diagnosis and treatment planning."},{"title": "Healthcare Analytics Using ML","abstract": "A comprehensive study of machine learning applications in clinical settings, including predictive analytics for patient outcomes and resource allocation optimization. The paper discusses both successes and implementation challenges."}]}
+papers_dict = {"papers":[
+    {
+    "title": "Exploiting Heavy Tails in Training Times of Multilayer Perceptrons: A Case Study with the UCI Thyroid Disease Database",
+    "summary": "The random initialization of weights of a multilayer perceptron makes it possible to model its training process as a Las Vegas algorithm. This modeling is used to perform a case study on the UCI Thyroid Disease Database."
+    },{
+        "title": "Kernels and Ensembles: Perspectives on Statistical Learning",
+        "summary": "The support vector machine and the AdaBoost algorithm have spawned a wave of research in statistical machine learning. Much of this new research falls into one of two broad categories: kernel methods and ensemble methods. I present two recent algorithms that I have invented with my collaborators: LAGO, a fast kernel algorithm for unbalanced classification and rare target detection."
+        }
+    ]}

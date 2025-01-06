@@ -34,27 +34,37 @@ class SearchEngine:
         # Procesar la consulta
         cond_1 = len(query.strip()) >= 20
         cond_2 = len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) >= 0.4
+        # print(f"cond_1: {cond_1}, cond_2: {cond_2}")
         if cond_1 and cond_2:
             query_en, original_lang = process_input(query)
-            query_for_search = query_en
-            language_info = {
-                "detected": True,
-                "lang": original_lang,
-                "translated_query": query_en
-            }
+            if original_lang and original_lang != 'en':
+                query_for_search = query_en
+                language_info = {
+                    "detected": True,
+                    "lang": original_lang,
+                    "translated_query": query_en
+                }
+            else:
+                language_info = {
+                    "detected": False,
+                    "warning": "El texto es demasiado corto para detectar el idioma de forma fiable. Se asume el inglés."
+                }
+                query_for_search = query
         else:
             if not cond_1:
+                # print('cond 1')
                 language_info = {
                     "detected": False,
                     "warning": "El texto es demasiado corto para detectar el idioma de forma fiable. Se asume el inglés."
                 }
             elif not cond_2:
+                # print('cond 2')
                 language_info = {
                     "detected": False,
                     "warning": "El texto contiene muy pocas letras para detectar el idioma de forma fiable."
                 }
             query_for_search = query
-            
+        
         # Realizar búsqueda semántica
         results = self.searcher.search(query_for_search)
 
@@ -73,7 +83,7 @@ class SearchEngine:
                 'abstract': r['abstract'],
                 'summary': r['summary'],
                 'similarity': r['similarity'],
-                'main_topics': r['main_topics']
+                'categories': r['categories']
             }
             original_papers.append(paper_with_score)
 
@@ -86,15 +96,18 @@ class SearchEngine:
         torch.cuda.empty_cache()
         
         # Leer el prompt
-        prompt_base = read_prompt("./nlp_llm/prompts/prompt_1")
+        prompt_base = read_prompt("./nlp_llm/prompts/prompt_0")
         
         # Generar el prompt completo
         user_query = f"{papers_dict}\nUser: {query_for_search}"
-        full_prompt = prompt_base + user_query
+        # print('user_query:', user_query)
+        full_prompt = prompt_base + '\n' + user_query + '\n' + "Response:"
+        # print('full_prompt:', full_prompt)
         
         # Generar respuesta
         generated = generate_text(max_length=get_input_tokens(full_prompt), prompt=full_prompt)
-        response = generated[generated.rfind('Contribution:') + len('Contribution: '):generated.rfind('<STOP>')]
+        print('generated:', generated)
+        response = generated[generated.rfind('Response:') + len('Response: '):generated.rfind('<STOP>')]
         
         # Traducir respuesta si la query no estaba en inglés
         if language_info.get("detected", False):

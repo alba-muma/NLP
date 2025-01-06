@@ -49,11 +49,12 @@ class SemanticSearch:
             
             # Obtener los resultados
             results = []
-            alpha = 0.25  # puedes ajustar este valor según necesites
+            alpha = 0.9  # puedes ajustar este valor según necesites
+            
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
                 similarity = np.exp(-alpha * dist)
                 print(similarity)
-                if similarity < 0.71:
+                if similarity < 0.5:
                     break
                 if idx >= len(self.df):
                     continue
@@ -65,7 +66,7 @@ class SemanticSearch:
                     'title': article['title'],
                     'abstract': article['abstract'],
                     'summary': article['summary'],
-                    'main_topics': article['main_topics'],
+                    'categories': article['main_topics'],
                     'id': article['id']
                 })
             
@@ -97,17 +98,13 @@ def main():
                 
                 print("\nResultados más relevantes:")
                 print("-" * 80)
-                for result in results:
+                for result in results[0:2]:
                     print(f"\n{result['rank']}. {result['title']}")
                     print(f"Score de similitud: {result['similarity']:.3f}")
                     print(f"Distancia: {result['distance']:.3f}")
                     print(f"Categorías: {result['categories']}")
                     print(f"ID: {result['id']}")
-                    # Mostrar solo los primeros 200 caracteres del abstract
-                    abstract = result['abstract'][:200]
-                    if len(result['abstract']) > 200:
-                        abstract += "..."
-                    print(f"Abstract: {abstract}")
+                    print(f"Summary: {result['summary']}")
                     print("-" * 80)
             
             except KeyboardInterrupt:

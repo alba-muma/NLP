@@ -25,8 +25,13 @@ El script de búsqueda te permitirá introducir temas y encontrará los artícul
 ```bash
 python view_bbdd.py
 ```
-
 El script de visualización te permitirá explorar la base de datos vectorial.
+
+4. Estudio de la métrica de similitud:
+```bash
+python test_similarity.py
+```
+El script de estudio te permitirá analizar la función de similitud en función del parámetro alpha y las distancias entre embeddings.
 
 ## Implementación
 

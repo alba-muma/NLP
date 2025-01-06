@@ -42,6 +42,7 @@ left_col, right_col = st.columns([1, 1])
 
 with left_col:
     # Barra de búsqueda en la columna izquierda
+    st.markdown("### 👁 Investigador:")
     query = st.text_input("", placeholder="Introduce tu consulta...")
     search_button = st.button("🔍 Buscar", type="primary", use_container_width=True)
 
@@ -53,18 +54,17 @@ with left_col:
                 results = engine.process_query(query)
                 
                 # Mostrar información del idioma si existe
-                if results["language_info"]:
-                    if results["language_info"]["detected"]:
+                if 'warning' not in results["language_info"]:
                         st.info(f"""
                         🌐 **Idioma detectado:** {results["language_info"]["lang"]}
                         
                         **Consulta traducida:** {results["language_info"]["translated_query"]}
                         """)
-                    elif "warning" in results["language_info"]:
-                        st.warning(f"⚠️ {results['language_info']['warning']}")
+                else:
+                    st.warning(f"⚠️ {results['language_info']['warning']}")
                 
                 # Mostrar la respuesta del sistema
-                st.markdown("### 💡 Diferencias respecto a trabajos existentes")
+                st.markdown("### 💡 Sistema:")
                 st.markdown(results["response"])
             except Exception as e:
                 st.error(f"Error durante el procesamiento: {str(e)}")
@@ -81,8 +81,8 @@ with right_col:
                 <div class="paper-card">
                     <h4>{paper['title']}</h4>
                     <p><small><strong>Similitud</strong>: {paper['similarity']*100:.1f}%</small></p>
-                    <p><strong>Abstract</strong>: {paper['abstract'][0:150]}...</p>
+                    <p><strong>Abstract</strong>: {paper['abstract']}</p>
                     <p><strong>Resumen</strong>: {paper['summary']}</p>
-                    <p><strong>Categorías</strong>: <strong>{paper['main_topics']}</strong></p>
+                    <p><strong>Categorías</strong>: <strong>{paper['categories']}</strong></p>
                 </div>
                 """, unsafe_allow_html=True)

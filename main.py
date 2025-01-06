@@ -39,13 +39,31 @@ def main():
             break
         
         # Detectar idioma y traducir query si es necesario
+        cond_1 = len(query.strip()) >= 20
+        cond_2 = len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) >= 0.4
+        if cond_1 and cond_2:
+            query_en, original_lang = process_input(query)
+            if original_lang and original_lang != 'en':
+                print(f"\nIdioma detectado: {original_lang} (confianza ≥ 85%)")
+                print(f"Traducción al inglés: {query_en}")
+                query_for_search = query_en
+            else:
+                query_for_search = query
+        else:
+            if not cond_1:
+                print("\nNota: El texto es demasiado corto para detectar el idioma de forma fiable. Se asume el inglés.")
+            elif not cond_2:
+                print("\nNota: El texto contiene muy pocas letras para detectar el idioma de forma fiable.")
+            query_for_search = query
+
+        # Detectar idioma y traducir query si es necesario
         query_en, original_lang = process_input(query)
         if original_lang and original_lang != 'en':
             print(f"\nIdioma detectado: {original_lang} (confianza ≥ 85%)")
             print(f"Traducción al inglés: {query_en}")
             query_for_search = query_en
         else:
-            if len(query.strip()) < 10:
+            if len(query.strip()) < 20:
                 print("\nNota: El texto es demasiado corto para detectar el idioma de forma fiable (mínimo 10 palabras). Se asume el inglés.")
             elif len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) < 0.4:
                 print("\nNota: El texto contiene muy pocas letras para detectar el idioma de forma fiable (mínimo 40% letras)")
@@ -76,7 +94,7 @@ def main():
 
         # Crear prompt para el modelo
         papers_dict = {
-            "papers": [{"title": r['title'], "abstract": r['summary']} for r in results[0:2]]
+            "papers": [{"title": r['title'], "summary": r['summary']} for r in results[0:2]]
         }
 
         # Vaciar la memoria de la GPU
@@ -85,7 +103,7 @@ def main():
         torch.cuda.empty_cache()
         
         # Leer el prompt
-        prompt_base = read_prompt("./nlp_llm/prompts/prompt_1")
+        prompt_base = read_prompt("./nlp_llm/prompts/prompt_0")
         
         # Generar el prompt completo
         user_query = f"{papers_dict}\nUser: {query_for_search}"
@@ -93,7 +111,7 @@ def main():
             prompt_base + '\n' +
             "Papers: " + 
             user_query + '\n' +
-            "Summary: "
+            "Response: "
         )
 
         # print('-----------------------')
@@ -110,11 +128,11 @@ def main():
         if original_lang and original_lang != 'en':
             response = process_output(response, original_lang)
         
-        print(response)
+        # print(response)
 
         torch.cuda.empty_cache()
-        # print(f"\n{response[response.rfind('Summary:'):response.rfind('Contribution:')]}")
-        # print(f"\n>>> {response[response.rfind('Contribution:'):response.rfind('<STOP>')]}")
+        print(f"\n>>> {generated[generated.rfind('Response:') + len('Response: '):generated.rfind('<STOP>')]}")
+
 
 if __name__ == "__main__":
     main()
