@@ -8,25 +8,24 @@ from bbdd_rag.search import SemanticSearch
 from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
 from language_translation.translation_utils import process_input, process_output
 from summarization.summarizer import TextSummarizer
+import pandas as pd
 
 def main():
     # Check if the index exists; otherwise, create it
-    if not os.path.exists('./bbdd_rag/arxiv_index.faiss') or not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
+    if not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
         print("Creando índice FAISS y base de datos vectorial...")
-        df = load_data(num_samples=50000)  
-        index = create_index(df)    
-        df.to_csv('./bbdd_rag/aoutput.csv', index=False)
-
-        print("Guardando índice y datos...")
-        faiss.write_index(index, './bbdd_rag/arxiv_index.faiss')
-        
+        df = pd.read_csv('./bbdd_rag/output.csv') if os.path.exists('./bbdd_rag/output.csv') else load_data(num_samples=50000)
         # Guardar datos
         with open('./bbdd_rag/arxiv_data.pkl', 'wb') as f:
             pickle.dump(df, f)
 
         print("Datos procesados y almacenados.")
-    else:
-        print("Índice y BBDD existentes localizados.")
+    if not os.path.exists('./bbdd_rag/arxiv_index.faiss'):
+        df = pd.read_csv('./bbdd_rag/output.csv')
+        print("Creando índice FAISS...")
+        index = create_index(df)
+        print("Guardando índice...")
+        faiss.write_index(index, './bbdd_rag/arxiv_index.faiss')
 
     # Inicializar sistema de búsqueda y summarizer
     searcher = SemanticSearch()
