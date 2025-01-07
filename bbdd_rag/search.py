@@ -71,9 +71,9 @@ class SemanticSearch:
             alpha = 0.25  # puedes ajustar este valor según necesites
             
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
-                similarity = np.exp(-alpha * dist)
+                similarity = np.exp(-dist*(dist**2))
                 # print(similarity)
-                if similarity < 0.7:
+                if similarity < 0.2:
                     break
                 if idx >= len(self.df):
                     continue

@@ -106,7 +106,7 @@ class SearchEngine:
         
         # Generar respuesta
         generated = generate_text(max_length=get_input_tokens(full_prompt), prompt=full_prompt)
-        print('generated:', generated)
+        # print('generated:', generated)
         response = generated.split('Response:')[6].split('<STOP>')[0]
         
         # Traducir respuesta si la query no estaba en inglés
