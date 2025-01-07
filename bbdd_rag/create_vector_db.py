@@ -11,7 +11,7 @@ from tqdm import tqdm
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from summarization.summarizer import TextSummarizer
 from keywords.keywords import generate_keywords
-from lda.topic_modelling import perform_topic_modelling
+from lda.topic_modeling import perform_topic_modeling
 
 def load_data(num_samples=5000):
     """
@@ -63,7 +63,7 @@ def load_data(num_samples=5000):
         df = generate_keywords(df)
 
         print("Generando categorías...")
-        df = perform_topic_modelling(df)
+        df = perform_topic_modeling(df)
 
         df.to_csv('./bbdd_rag/output.csv', index=False)
     

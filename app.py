@@ -85,7 +85,7 @@ with right_col:
         
         # Mostrar papers relevantes
         if relevant_papers:
-            st.markdown("### 📄 Papers Relevantes:")
+            st.markdown("### 📄 Artículos Relevantes:")
             for paper in relevant_papers:
                 with st.container():
                     st.markdown(f"""
@@ -100,7 +100,7 @@ with right_col:
         
         # Mostrar papers relacionados
         if related_papers:
-            st.markdown("### 🧵 Papers que pueden resultarte de interés:")
+            st.markdown("### 🧵 Artículos que pueden resultarte de interés:")
             for paper in related_papers:
                 with st.container():
                     st.markdown(f"""

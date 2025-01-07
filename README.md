@@ -1,10 +1,35 @@
 # 📚 Buscador de investigación académica
 
-Este proyecto implementa un motor de búsqueda semántica para artículos científicos de arXiv utilizando embeddings y una base de datos vectorial FAISS. Se proporciona una interfaz de usuario para realizar búsquedas y visualizar la base de datos vectorial. El sistema está preparado para procesar consultas en cualquier idioma y responder en el idioma de la consulta. El resultado de la búsqueda muestra:
-- Artículos relevantes basados en similitud semántica y su medida de similitud.
-- Diferencias entre la línea de investigación del usuario y los artículos relevantes.
-- Resumen de los artículos.
-- Visualización de tópicos o categorías asociadas a los artículos.
+Sistema de búsqueda semántica para artículos científicos de arXiv que utiliza topic modeling, extracción de keywords, base de datos vectorial, embeddings, LLM y transformers para analizar la consulta de un usuario, encontrar y analizar artículos científicos relevantes para esta consulta y dar respuesta en el idioma de la consulta inicial del usuario.
+
+## Componentes Principales
+
+### Motor de Búsqueda (`search_engine.py`)
+
+Implementa la lógica central del sistema:
+- Búsqueda semántica usando embeddings y FAISS
+- Integración con LLM para generar respuestas contextualizadas
+- Procesamiento multilingüe de consultas
+- Traducción de respuestas al idioma de usuario
+
+### Interfaz de Usuario (`app.py`)
+
+Implementa la interfaz web usando Streamlit:
+- Búsqueda intuitiva con campo de texto
+- Visualización de artículos en dos categorías:
+  - Artículos Relevantes (similitud > 0.5)
+  - Artículos de Interés (similitud ≤ 0.5)
+- Respuesta del Sistema
+- Indicador de tiempo de procesamiento
+
+## Módulos de Soporte
+
+- `bbdd_rag/`: Base de datos vectorial y búsqueda por similitud
+- `keywords/`: Extracción de palabras clave
+- `lda/`: Modelado de tópicos
+- `nlp_llm/`: Generación de respuesta del Sistema con LLM
+- `language_translation/`: Procesamiento multilingüe
+- `summarization/`: Generación de resúmenes de los artículos
 
 ## Requisitos
 
@@ -44,6 +69,7 @@ pip install -r requirements.txt
 ```
 
 ### Paso 3: Ejecutar la app principal
+
 ```bash
 python -m streamlit run app.py
 ```

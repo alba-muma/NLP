@@ -31,7 +31,7 @@ El script de visualización te permitirá explorar la base de datos vectorial.
 ```bash
 python test_similarity.py
 ```
-El script de estudio te permitirá analizar la función de similitud en función del parámetro alpha y las distancias entre embeddings.
+El script de estudio permite analizar la forma de la función de similitud a partir de la distancia entre vectores.
 
 ## Implementación
 

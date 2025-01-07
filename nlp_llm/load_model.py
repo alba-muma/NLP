@@ -28,7 +28,6 @@ try:
     )
     device = "cuda" if torch.cuda.is_available() else "cpu"
 except Exception as e:
-    #print(f"Could not load bitsandbytes native libraryyyyyyyya: {e}")
     # Cargar el modelo sin bitsandbytes y moverlo a la GPU si es posible
     model = AutoModelForCausalLM.from_pretrained(model_path)
     if torch.cuda.is_available():
@@ -50,18 +49,45 @@ tokenizer = AutoTokenizer.from_pretrained(model_path)
 tokenizer.pad_token = tokenizer.eos_token
 
 def read_prompt(prompt_file):
-    """Lee el contenido de un archivo de prompt"""
+    """
+    Lee el contenido de un archivo de prompt.
+    
+    Args:
+        prompt_file (str): Ruta al archivo de prompt
+    
+    Returns:
+        str: Contenido del prompt
+    """
     with open(prompt_file, 'r', encoding='utf-8') as f:
         content = f.read().strip()
     return content
 
 def get_input_tokens(full_prompt):
+    """
+    Calcula el número de tokens necesarios para el prompt.
+    
+    Args:
+        full_prompt (str): Texto del prompt
+    
+    Returns:
+        int: Número de tokens
+    """
     # Contar tokens del prompt
     tokens = tokenizer.encode(full_prompt)
     return len(tokens)
 
 def generate_text(prompt, max_length, max_new_tokens=200):
-    """Genera texto basado en un prompt"""
+    """
+    Genera texto basado en un prompt.
+    
+    Args:
+        prompt (str): Texto de entrada
+        max_length (int): Longitud máxima de la generación
+        max_new_tokens (int): Número máximo de tokens nuevos
+    
+    Returns:
+        str: Texto generado
+    """
     # Limpiar y formatear el prompt
     prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
 

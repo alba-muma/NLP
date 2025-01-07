@@ -10,7 +10,16 @@ from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
 from language_translation.translation_utils import process_input, process_output
 
 class SearchEngine:
+    """
+    Motor de búsqueda semántica que combina embeddings, búsqueda por similitud
+    y generación de respuestas contextualizadas.
+    """
+    
     def __init__(self):
+        """
+        Inicializa el motor de búsqueda cargando el modelo de embeddings,
+        el índice FAISS y los datos de los artículos.
+        """
         # Check if the index exists; otherwise, create it
         if not os.path.exists('./bbdd_rag/arxiv_index.faiss') or not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
             print("Creando índice FAISS y base de datos vectorial...")
@@ -26,6 +35,15 @@ class SearchEngine:
         self.searcher = SemanticSearch()
 
     def process_query(self, query):
+        """
+        Procesa una consulta del usuario y genera una respuesta contextualizada.
+        
+        Args:
+            query (str): Consulta del usuario
+        
+        Returns:
+            dict: Resultados incluyendo artículos relevantes y respuesta generada
+        """
         # Detectar idioma y traducir si es necesario
         original_lang = None
         query_en = query
@@ -98,7 +116,6 @@ class SearchEngine:
         # Lecer el prompt correspondiente
         prompt = 4
         if not papers_dict["papers"]:
-            print('NO HAY ARTÍCULOS MUY RELEVANTES')
             papers_dict = {
             "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2]]
             }
