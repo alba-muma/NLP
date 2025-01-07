@@ -13,31 +13,26 @@ def perform_topic_modelling(df, num_topics=80, passes=10, threshold=0.01):
 
     print("Iniciando el modelado de tópicos...")
 
-    # Leer los textos preprocesados desde el archivo
     with open('./lda/processed_texts.txt', 'r', encoding='utf-8') as f:
         processed_texts = [line.strip() for line in f if line.strip()]
 
-    # Crear corpus y diccionario
     processed_texts_split = [text.split() for text in processed_texts]
     dictionary = Dictionary(processed_texts_split)
     corpus_bow = [dictionary.doc2bow(text) for text in processed_texts_split]
 
-    # Entrenar el modelo LDA
     print("Entrenando el modelo LDA...")
     ldamodel = LdaModel(corpus=corpus_bow, id2word=dictionary, num_topics=num_topics, passes=passes, random_state=42)
 
-    # Obtener la distribución de tópicos para cada documento
+
     print("Generando la distribución de tópicos para cada documento...")
     all_doc_topics = [
         [(f"{topic_id}", prob) for topic_id, prob in ldamodel.get_document_topics(bow, minimum_probability=0.001)]
         for bow in corpus_bow
     ]
 
-    # Añadir la distribución de tópicos al DataFrame original
     df = df.copy()
     df['topic_distribution'] = all_doc_topics
 
-    # Mapear tópicos a palabras clave si se proporciona un archivo
     print("Mapeando tópicos a palabras clave...")
     keywords_topics = pd.read_csv('./lda/cleaned_keywords_topics.csv')
     topic_dict = dict(zip(
