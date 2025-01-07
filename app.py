@@ -46,13 +46,13 @@ with left_col:
     st.markdown("### 👁 Investigador:")
     query = st.text_input("", placeholder="Introduce tu consulta...")
     search_button = st.button("🔍 Buscar", type="primary", use_container_width=True)
+    engine = get_search_engine()
 
     # Procesar la búsqueda y mostrar respuesta del sistema
     if search_button and query:
         start_time = time.time()  # Iniciar temporizador
         with st.spinner("Procesando tu consulta..."):
             try:
-                engine = get_search_engine()
                 results = engine.process_query(query)
                 
                 # Mostrar información del idioma si existe

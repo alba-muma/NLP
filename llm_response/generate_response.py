@@ -10,43 +10,105 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 stderr = sys.stderr
 # sys.stderr = open(os.devnull, 'w')
 
-# Ruta al modelo descargado
-model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
+class LLMManager:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(LLMManager, cls).__new__(cls)
+            cls._instance._initialize()
+        return cls._instance
+    
+    def _initialize(self):
+        # Ruta al modelo descargado
+        self.model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
+        
+        # Configurar cuantización de 8 bits
+        quantization_config = BitsAndBytesConfig(
+            load_in_8bit=True,
+        )
+        
+        # Intentar cargar el modelo en GPU con bitsandbytes
+        try:
+            torch.cuda.empty_cache()
+            print('Cargando Llama-3.2-1B...')
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.model_path,
+                device_map="auto",
+                quantization_config=quantization_config
+            )
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        except Exception as e:
+            # Cargar el modelo sin bitsandbytes y moverlo a la GPU si es posible
+            self.model = AutoModelForCausalLM.from_pretrained(self.model_path)
+            if torch.cuda.is_available():
+                self.model = self.model.to("cuda")
+                self.device = "cuda"
+            else:
+                self.device = "cpu"
 
-# Configurar cuantización de 8 bits
-quantization_config = BitsAndBytesConfig(
-    load_in_8bit=True,
-)
+        print(f'Llama-3.2-1B cargado en {self.device}')
 
-# Intentar cargar el modelo en GPU con bitsandbytes
-try:
-    print('Cargando Llama-3.2-1B...')
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        device_map="auto",
-        quantization_config=quantization_config
-    )
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-except Exception as e:
-    # Cargar el modelo sin bitsandbytes y moverlo a la GPU si es posible
-    model = AutoModelForCausalLM.from_pretrained(model_path)
-    if torch.cuda.is_available():
-        model = model.to("cuda")
-        device = "cuda"
-    else:
-        device = "cpu"
+        # Cargar el tokenizador
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
 
-print(f'Llama-3.2-1B cargado en {device}')
+    def generate_text(self, prompt, max_length, max_new_tokens=300):
+        """
+        Genera texto basado en un prompt.
+        
+        Args:
+            prompt (str): Texto de entrada
+            max_length (int): Longitud máxima de la generación
+            max_new_tokens (int): Número máximo de tokens nuevos
+        
+        Returns:
+            str: Texto generado
+        """
+        # Limpiar y formatear el prompt
+        prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
 
-# Cargar el tokenizador y el modelo
-tokenizer = AutoTokenizer.from_pretrained(model_path)
+        # Tokenizar con longitud limitada
+        inputs = self.tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=max_length,
+            padding=True
+        ).to(self.device)
 
-# Mostrar información sobre el eos_token
-# print(f"EOS token: '{tokenizer.eos_token}'")
-# print(f"EOS token ID: {tokenizer.eos_token_id}")
+        # Generar respuesta
+        with torch.no_grad():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=True,
+                temperature=0.1,
+                # top_p=0.9,
+                num_beams=3,
+                early_stopping=True,
+                pad_token_id=self.tokenizer.eos_token_id,
+                tokenizer=self.tokenizer
+            )
 
-# Asignar eos_token como pad_token
-tokenizer.pad_token = tokenizer.eos_token
+        # Decodificar y limpiar la respuesta
+        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        response = response.split('Response:')[4].split('<STOP>')[0]
+        
+        return response
+
+    def get_input_tokens(self, full_prompt):
+        """
+        Calcula el número de tokens necesarios para el prompt.
+        
+        Args:
+            full_prompt (str): Texto del prompt
+        
+        Returns:
+            int: Número de tokens
+        """
+        tokens = self.tokenizer.encode(full_prompt)
+        return len(tokens)
 
 def read_prompt(prompt_file):
     """
@@ -62,69 +124,17 @@ def read_prompt(prompt_file):
         content = f.read().strip()
     return content
 
+# Crear una instancia global del LLMManager
+llm_manager = LLMManager()
+
+# Funciones de conveniencia que usan el singleton
+def generate_text(prompt, max_length, max_new_tokens=300):
+    return llm_manager.generate_text(prompt, max_length, max_new_tokens)
+
 def get_input_tokens(full_prompt):
-    """
-    Calcula el número de tokens necesarios para el prompt.
-    
-    Args:
-        full_prompt (str): Texto del prompt
-    
-    Returns:
-        int: Número de tokens
-    """
-    # Contar tokens del prompt
-    tokens = tokenizer.encode(full_prompt)
-    return len(tokens)
+    return llm_manager.get_input_tokens(full_prompt)
 
-def generate_text(prompt, max_length, max_new_tokens=200):
-    """
-    Genera texto basado en un prompt.
-    
-    Args:
-        prompt (str): Texto de entrada
-        max_length (int): Longitud máxima de la generación
-        max_new_tokens (int): Número máximo de tokens nuevos
-    
-    Returns:
-        str: Texto generado
-    """
-    # Limpiar y formatear el prompt
-    prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
-
-    # Tokenizar con longitud limitada
-    inputs = tokenizer(
-        prompt,
-        return_tensors="pt",
-        truncation=True,
-        max_length=max_length,
-        padding=True
-    ).to(device)
-
-
-    outputs = model.generate(
-        inputs["input_ids"],
-        attention_mask=inputs["attention_mask"],
-        max_new_tokens=max_new_tokens,
-        num_return_sequences=1,
-        temperature=0.4,
-        # top_p=0.9,
-        num_beams=3,
-        do_sample=True,
-        pad_token_id=tokenizer.pad_token_id,
-        eos_token_id=tokenizer.eos_token_id,
-        early_stopping=True,
-        # length_penalty=-0.5,
-        # repetition_penalty=1.5,
-        tokenizer=tokenizer,
-    )
-    
-    # Decodificar el texto generado
-    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=False)
-
-    return generated_text.strip()
-    
 if __name__ == "__main__":
-
     # Vaciar la memoria de la GPU
     torch.cuda.empty_cache()
 
@@ -132,12 +142,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate text based on example prompts')
     parser.add_argument('example_number', type=int, help='Example number to use (e.g., 1 for example_1)')
     args = parser.parse_args()
-    
+
     # Leer el prompt
-    prompt_base = read_prompt("./nlp_llm/prompts/prompt_2")
+    prompt = 4
+    prompt_base = read_prompt(f"./llm_response/prompts/prompt_{prompt}")
     
     # Leer el ejemplo específico
-    example_path = f"./nlp_llm/prompts/examples/example_{args.example_number}"
+    example_path = f"./llm_response/prompts/examples/example_{args.example_number}"
     try:
         with open(example_path, 'r', encoding='utf-8') as f:
             example_content = f.read()
@@ -172,14 +183,7 @@ if __name__ == "__main__":
     for i, paper in enumerate(papers_dict["papers"], 1):
         print(f'\t{i}. {paper["title"]}. {paper["summary"]}')
     print("\nSistema:")
-    if generated.rfind('<STOP>') == -1:
-        print('1')
-        print(generated)
-    elif generated.rfind('Response:') == -1:
-        print('2')
-        print(generated)
-    else:
-        print(generated[len(full_prompt)-2:generated.rfind('<STOP>')])
+    print(generated)
 
     # Restaurar stderr al final
     sys.stderr = stderr

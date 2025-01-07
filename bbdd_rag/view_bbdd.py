@@ -4,7 +4,7 @@ def view_articles():
     try:
         # Cargar los datos
         print("Cargando datos...")
-        with open('arxiv_data.pkl', 'rb') as f:
+        with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
             df = pickle.load(f)
         
         print(f"\nTotal de artículos: {len(df)}\n")
