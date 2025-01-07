@@ -45,8 +45,8 @@ def main():
     searcher = SemanticSearch()
     
     # Hacer una búsqueda de prueba
-    # query = "neural networks in computer vision"
-    query = "Supervised machine learning"
+    query = "neural networks in computer vision"
+    # query = "Supervised machine learning"
     print(f"\nBuscando: '{query}'")
     print("-" * 50)
     

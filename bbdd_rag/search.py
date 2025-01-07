@@ -68,7 +68,6 @@ class SemanticSearch:
             
             # Obtener los resultados
             results = []
-            alpha = 0.25  # puedes ajustar este valor según necesites
             
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
                 similarity = np.exp(-dist*(dist**2))
@@ -117,7 +116,9 @@ def main():
                 
                 print("\nResultados más relevantes:")
                 print("-" * 80)
-                for result in results[0:2]:
+                for result in results:
+                    if result['similarity'] < 0.2:
+                        break
                     print(f"\n{result['rank']}. {result['title']}")
                     print(f"Score de similitud: {result['similarity']:.3f}")
                     print(f"Distancia: {result['distance']:.3f}")

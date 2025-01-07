@@ -90,14 +90,20 @@ class SearchEngine:
 
         # Crear prompt para el modelo con resúmenes
         papers_dict = {
-            "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2]]
+            "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2] if r['similarity']>0.7]
         }
 
         # Vaciar la memoria de la GPU
         torch.cuda.empty_cache()
-        
-        # Leer el prompt
-        prompt_base = read_prompt("./nlp_llm/prompts/prompt_4")
+        # Lecer el prompt correspondiente
+        prompt = 4
+        if not papers_dict["papers"]:
+            print('NO HAY ARTÍCULOS MUY RELEVANTES')
+            papers_dict = {
+            "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2]]
+            }
+            prompt = 5
+        prompt_base = read_prompt(f"./nlp_llm/prompts/prompt_{prompt}")
         
         # Generar el prompt completo
         user_query = f"{papers_dict}\nUser: {query_for_search}"
@@ -106,9 +112,9 @@ class SearchEngine:
         
         # Generar respuesta
         generated = generate_text(max_length=get_input_tokens(full_prompt), prompt=full_prompt)
-        # print('generated:', generated)
-        response = generated.split('Response:')[6].split('<STOP>')[0]
-        
+        print('generated:', generated)
+        response = generated.split('Response:')[prompt].split('<STOP>')[0]
+       
         # Traducir respuesta si la query no estaba en inglés
         if language_info.get("detected", False):
             response = process_output(response, language_info["lang"])

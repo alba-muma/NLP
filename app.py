@@ -6,6 +6,7 @@ st.set_page_config(
     layout="wide"
 )
 from search_engine import SearchEngine
+import time
 
 # Estilos CSS personalizados
 st.markdown("""
@@ -48,6 +49,7 @@ with left_col:
 
     # Procesar la búsqueda y mostrar respuesta del sistema
     if search_button and query:
+        start_time = time.time()  # Iniciar temporizador
         with st.spinner("Procesando tu consulta..."):
             try:
                 engine = get_search_engine()
@@ -68,21 +70,45 @@ with left_col:
                 st.markdown(results["response"])
             except Exception as e:
                 st.error(f"Error durante el procesamiento: {str(e)}")
+        # Calcular tiempo transcurrido
+        elapsed_time = time.time() - start_time
+        st.success(f"✨ Búsqueda completada en {elapsed_time:.2f} segundos")
     elif search_button:
         st.warning("⚠️ Por favor, introduce una consulta.")
 
 with right_col:
     # Mostrar los papers en la columna derecha
     if 'results' in locals() and search_button and query and results["papers"]:
-        st.markdown("### 📄 Papers Relevantes")
-        for paper in results["papers"]:
-            with st.container():
-                st.markdown(f"""
-                <div class="paper-card">
-                    <h4>{paper['title'].replace('<', '&lt;').replace('>', '&gt;')}</h4>
-                    <p><small><strong>Similitud</strong>: {paper['similarity']*100:.1f}%</small></p>
-                    <p><strong>Abstract</strong>: {paper['abstract'][:50].replace('<', '&lt;').replace('>', '&gt;')}...</p>
-                    <p><strong>Resumen generado automáticamente</strong>: {paper['summary'].replace('<', '&lt;').replace('>', '&gt;')}</p>
-                    <p><strong>Categorías</strong>: <strong>{paper['categories'].replace('<', '&lt;').replace('>', '&gt;')}</strong></p>
-                </div>
-                """, unsafe_allow_html=True)
+        # Separar papers por similitud
+        relevant_papers = [p for p in results["papers"] if p['similarity'] > 0.7]
+        related_papers = [p for p in results["papers"] if p['similarity'] <= 0.7]
+        
+        # Mostrar papers relevantes
+        if relevant_papers:
+            st.markdown("### 📄 Papers Relevantes:")
+            for paper in relevant_papers:
+                with st.container():
+                    st.markdown(f"""
+                    <div class="paper-card">
+                        <h4>{paper['title'].replace('<', '&lt;').replace('>', '&gt;')}</h4>
+                        <p><small><strong>Similitud</strong>: {paper['similarity']*100:.1f}%</small></p>
+                        <p><strong>Abstract</strong>: {paper['abstract'][:50].replace('<', '&lt;').replace('>', '&gt;')}...</p>
+                        <p><strong>Resumen generado automáticamente</strong>: {paper['summary'].replace('<', '&lt;').replace('>', '&gt;')}</p>
+                        <p><strong>Categorías</strong>: <strong>{paper['categories'].replace('<', '&lt;').replace('>', '&gt;')}</strong></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+        
+        # Mostrar papers relacionados
+        if related_papers:
+            st.markdown("### 🧵 Papers que pueden resultarte de interés:")
+            for paper in related_papers:
+                with st.container():
+                    st.markdown(f"""
+                    <div class="paper-card">
+                        <h4>{paper['title'].replace('<', '&lt;').replace('>', '&gt;')}</h4>
+                        <p><small><strong>Similitud</strong>: {paper['similarity']*100:.1f}%</small></p>
+                        <p><strong>Abstract</strong>: {paper['abstract'][:50].replace('<', '&lt;').replace('>', '&gt;')}...</p>
+                        <p><strong>Resumen generado automáticamente</strong>: {paper['summary'].replace('<', '&lt;').replace('>', '&gt;')}</p>
+                        <p><strong>Categorías</strong>: <strong>{paper['categories'].replace('<', '&lt;').replace('>', '&gt;')}</strong></p>
+                    </div>
+                    """, unsafe_allow_html=True)
