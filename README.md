@@ -27,7 +27,7 @@ Implementa la interfaz web usando Streamlit:
 - `bbdd_rag/`: Base de datos vectorial y búsqueda por similitud
 - `keywords/`: Extracción de palabras clave
 - `lda/`: Modelado de tópicos
-- `nlp_llm/`: Generación de respuesta del Sistema con LLM
+- `llm_response/`: Generación de respuesta del Sistema con LLM
 - `language_translation/`: Procesamiento multilingüe
 - `summarization/`: Generación de resúmenes de los artículos
 

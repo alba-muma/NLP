@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from bbdd_rag.create_vector_db import load_data, create_index
 from bbdd_rag.search import SemanticSearch
-from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
+from llm_response.generate_response import generate_text, read_prompt, get_input_tokens
 from language_translation.translation_utils import process_input, process_output
 
 class SearchEngine:
@@ -120,7 +120,7 @@ class SearchEngine:
             "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2]]
             }
             prompt = 5
-        prompt_base = read_prompt(f"./nlp_llm/prompts/prompt_{prompt}")
+        prompt_base = read_prompt(f"./llm_response/prompts/prompt_{prompt}")
         
         # Generar el prompt completo
         user_query = f"{papers_dict}\nUser: {query_for_search}"

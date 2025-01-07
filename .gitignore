@@ -7,5 +7,4 @@ bbdd_rag/output.csv
 /nlp_llm/llama_env
 bbdd_rag/arxiv-metadata-oai-snapshot.json
 /nlp_venv
-llm_clean_queries/*
 *.csv

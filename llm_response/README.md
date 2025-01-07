@@ -7,10 +7,10 @@ Se integra con el sistema principal para generar resúmenes y análisis de los a
 ## Uso
 
 ```python
-from nlp_llm.load_model import generate_text, read_prompt, get_input_tokens
+from llm_response.generate_response import generate_text, read_prompt, get_input_tokens
 
 # Leer un prompt predefinido
-prompt = read_prompt('./nlp_llm/prompts/prompt_4')
+prompt = read_prompt('./llm_response/prompts/prompt_4')
 
 # Generar texto
 response = generate_text(prompt, max_length=2048)
