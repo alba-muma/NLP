@@ -10,6 +10,8 @@ import faiss
 from tqdm import tqdm
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from summarization.summarizer import TextSummarizer
+from keywords.keywords import generate_keywords
+from lda.topic_modelling import perform_topic_modelling
 
 def load_data(num_samples=5000):
     """
@@ -53,9 +55,17 @@ def load_data(num_samples=5000):
         # Añadir resúmenes a los datos
         for i, summary in enumerate(summaries):
             data[i]['summary'] = summary
-
+        
         print("Convirtiendo a DataFrame...")
         df = pd.DataFrame(data)
+        
+        print("Generando keywords...")
+        df = generate_keywords(df)
+
+        print("Generando categorías...")
+        df = perform_topic_modelling(df)
+
+        df.to_csv('./bbdd_rag/output.csv', index=False)
     
     return df
 
@@ -76,13 +86,14 @@ def create_index(df):
     print("Generando embeddings para los artículos...")
     embeddings = []
     for _, row in tqdm(df.iterrows(), total=len(df)):
-        # Combinar título y abstract para el embedding
-        # text = f"{row['title']} {row['abstract']}"
-        text = f"{row['title']}. {', '.join(row['keywords'])}"
+        # Combinar los elementos de la lista 'keywords' en una cadena separada por espacios
+        keywords_list = eval(row['keywords']) if isinstance(row['keywords'], str) else row['keywords']
+        text = " ".join(keywords_list)
+        
         with torch.no_grad():
             embedding = model.encode(text, convert_to_numpy=True)
         embeddings.append(embedding)
-    
+
     # Convertir la lista de embeddings a un array de numpy
     embeddings = np.array(embeddings, dtype='float32')
     
