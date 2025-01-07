@@ -90,7 +90,7 @@ class SearchEngine:
 
         # Crear prompt para el modelo con resúmenes
         papers_dict = {
-            "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2] if r['similarity']>0.7]
+            "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2] if r['similarity']>0.5]
         }
 
         # Vaciar la memoria de la GPU

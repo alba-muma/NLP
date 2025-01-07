@@ -80,8 +80,8 @@ with right_col:
     # Mostrar los papers en la columna derecha
     if 'results' in locals() and search_button and query and results["papers"]:
         # Separar papers por similitud
-        relevant_papers = [p for p in results["papers"] if p['similarity'] > 0.7]
-        related_papers = [p for p in results["papers"] if p['similarity'] <= 0.7]
+        relevant_papers = [p for p in results["papers"] if p['similarity'] > 0.5]
+        related_papers = [p for p in results["papers"] if p['similarity'] <= 0.5]
         
         # Mostrar papers relevantes
         if relevant_papers:
