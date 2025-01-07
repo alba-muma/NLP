@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 import torch
 import gc
 import os
+import spacy
 
 # Forzar el uso de CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
@@ -25,19 +26,37 @@ class SemanticSearch:
             print("Cargando BBDD...")
             with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
                 self.df = pickle.load(f)
+                
+            self.nlp = spacy.load('en_core_web_md')
             
         except Exception as e:
             print(f"Error durante la inicialización: {str(e)}")
             raise
     
+    def extract_keywords(self, text):
+        """Extrae keywords usando spaCy"""
+        doc = self.nlp(text.lower())
+        # Obtener sustantivos y adjetivos relevantes
+        keywords = [token.text for token in doc 
+                   if (token.pos_ in ['NOUN', 'PROPN', 'ADJ']) 
+                   and not token.is_stop]
+        return ' '.join(keywords)
+
     def search(self, query):
         """
         Busca los k artículos más similares a la consulta
         """
         try:
+            # Extraer keywords de la query
+            query_keywords = self.extract_keywords(query)
+            print(f"Keywords extraídos: {query_keywords}")
+            
+            # Usar keywords para la búsqueda si hay suficientes, sino usar query original
+            search_text = query_keywords if len(query_keywords.split()) >= 2 else query
+            
             # Crear embedding de la consulta usando CPU
             with torch.no_grad():
-                query_vector = self.model.encode(query, convert_to_numpy=True)
+                query_vector = self.model.encode(search_text, convert_to_numpy=True)
             
             _vector = np.array([query_vector], dtype='float32')
             faiss.normalize_L2(_vector)
@@ -45,16 +64,16 @@ class SemanticSearch:
             # Buscar los k vecinos más cercanos
             k = self.index.ntotal
             distances, indices = self.index.search(_vector, k)
-            print(distances)
+            # print(distances)
             
             # Obtener los resultados
             results = []
-            alpha = 0.9  # puedes ajustar este valor según necesites
+            alpha = 0.25  # puedes ajustar este valor según necesites
             
             for i, (dist, idx) in enumerate(zip(distances[0], indices[0])):
                 similarity = np.exp(-alpha * dist)
-                print(similarity)
-                if similarity < 0.5:
+                # print(similarity)
+                if similarity < 0.7:
                     break
                 if idx >= len(self.df):
                     continue

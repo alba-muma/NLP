@@ -42,6 +42,10 @@ print(f'Llama-3.2-1B cargado en {device}')
 # Cargar el tokenizador y el modelo
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 
+# Mostrar información sobre el eos_token
+# print(f"EOS token: '{tokenizer.eos_token}'")
+# print(f"EOS token ID: {tokenizer.eos_token_id}")
+
 # Asignar eos_token como pad_token
 tokenizer.pad_token = tokenizer.eos_token
 
@@ -56,7 +60,7 @@ def get_input_tokens(full_prompt):
     tokens = tokenizer.encode(full_prompt)
     return len(tokens)
 
-def generate_text(prompt, max_length, max_new_tokens=150):
+def generate_text(prompt, max_length, max_new_tokens=200):
     """Genera texto basado en un prompt"""
     # Limpiar y formatear el prompt
     prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
@@ -70,12 +74,13 @@ def generate_text(prompt, max_length, max_new_tokens=150):
         padding=True
     ).to(device)
 
+
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
         max_new_tokens=max_new_tokens,
         num_return_sequences=1,
-        temperature=0.2,
+        temperature=0.4,
         # top_p=0.9,
         num_beams=3,
         do_sample=True,
@@ -85,11 +90,10 @@ def generate_text(prompt, max_length, max_new_tokens=150):
         # length_penalty=-0.5,
         # repetition_penalty=1.5,
         tokenizer=tokenizer,
-        stop_strings= ["<STOP>"]
     )
     
     # Decodificar el texto generado
-    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=False)
 
     return generated_text.strip()
     
@@ -152,4 +156,4 @@ if __name__ == "__main__":
         print(generated[len(full_prompt)-2:generated.rfind('<STOP>')])
 
     # Restaurar stderr al final
-    sys.stderr = stderr 
+    sys.stderr = stderr

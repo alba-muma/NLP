@@ -21,13 +21,13 @@ def plot_similarity_function(distances, alpha=0.5):
     plt.scatter(distances, similarities, color='red', label='Distancias encontradas')
     
     # Añadir una línea horizontal en y=0.5 (umbral)
-    plt.axhline(y=0.5, color='r', linestyle='--', alpha=0.5, label='Umbral (0.5)')
+    plt.axhline(y=0.7, color='r', linestyle='--', alpha=0.5, label='Umbral (0.5)')
     
     # Configurar el gráfico
     plt.title('Función de Similitud vs Distancias')
     plt.xlabel('Distancia')
     plt.ylabel('Similitud')
-    plt.grid(True, alpha=0.3)
+    plt.grid(True, alpha=alpha)
     plt.legend()
     
     # Mostrar el gráfico
@@ -53,7 +53,7 @@ def main():
         distances, indices = searcher.index.search(query_embedding, k)
         
         # Mostrar distancias y similitudes
-        alpha = 0.7
+        alpha = 0.25
         print("\nDistancias y similitudes:")
         print("-" * 50)
         for dist in distances[0]:

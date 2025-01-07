@@ -58,7 +58,7 @@ with left_col:
                         st.info(f"""
                         🌐 **Idioma detectado:** {results["language_info"]["lang"]}
                         
-                        **Consulta traducida:** {results["language_info"]["translated_query"]}
+                        **Consulta en inglés:** {results["language_info"]["translated_query"]}
                         """)
                 else:
                     st.warning(f"⚠️ {results['language_info']['warning']}")
@@ -74,15 +74,15 @@ with left_col:
 with right_col:
     # Mostrar los papers en la columna derecha
     if 'results' in locals() and search_button and query and results["papers"]:
-        st.markdown("### 📄 Papers Relacionados")
+        st.markdown("### 📄 Papers Relevantes")
         for paper in results["papers"]:
             with st.container():
                 st.markdown(f"""
                 <div class="paper-card">
-                    <h4>{paper['title']}</h4>
+                    <h4>{paper['title'].replace('<', '&lt;').replace('>', '&gt;')}</h4>
                     <p><small><strong>Similitud</strong>: {paper['similarity']*100:.1f}%</small></p>
-                    <p><strong>Abstract</strong>: {paper['abstract']}</p>
-                    <p><strong>Resumen</strong>: {paper['summary']}</p>
-                    <p><strong>Categorías</strong>: <strong>{paper['categories']}</strong></p>
+                    <p><strong>Abstract</strong>: {paper['abstract'][:50].replace('<', '&lt;').replace('>', '&gt;')}...</p>
+                    <p><strong>Resumen generado automáticamente</strong>: {paper['summary'].replace('<', '&lt;').replace('>', '&gt;')}</p>
+                    <p><strong>Categorías</strong>: <strong>{paper['categories'].replace('<', '&lt;').replace('>', '&gt;')}</strong></p>
                 </div>
                 """, unsafe_allow_html=True)

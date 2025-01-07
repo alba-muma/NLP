@@ -46,8 +46,9 @@ class SearchEngine:
                 }
             else:
                 language_info = {
-                    "detected": False,
-                    "warning": "El texto es demasiado corto para detectar el idioma de forma fiable. Se asume el inglés."
+                    "detected": True,
+                    "lang": 'en',
+                    "translated_query": query
                 }
                 query_for_search = query
         else:
@@ -89,25 +90,24 @@ class SearchEngine:
 
         # Crear prompt para el modelo con resúmenes
         papers_dict = {
-            "papers": [{"title": r['title'], "summary": r['summary']} for r in results[0:2]]
+            "papers": [{"title": r['title'].replace('\n', ' '), "summary": r['summary'].replace('\n', ' ')} for r in results[0:2]]
         }
 
         # Vaciar la memoria de la GPU
         torch.cuda.empty_cache()
         
         # Leer el prompt
-        prompt_base = read_prompt("./nlp_llm/prompts/prompt_0")
+        prompt_base = read_prompt("./nlp_llm/prompts/prompt_4")
         
         # Generar el prompt completo
         user_query = f"{papers_dict}\nUser: {query_for_search}"
         # print('user_query:', user_query)
         full_prompt = prompt_base + '\n' + user_query + '\n' + "Response:"
-        # print('full_prompt:', full_prompt)
         
         # Generar respuesta
         generated = generate_text(max_length=get_input_tokens(full_prompt), prompt=full_prompt)
         print('generated:', generated)
-        response = generated[generated.rfind('Response:') + len('Response: '):generated.rfind('<STOP>')]
+        response = generated.split('Response:')[6].split('<STOP>')[0]
         
         # Traducir respuesta si la query no estaba en inglés
         if language_info.get("detected", False):
