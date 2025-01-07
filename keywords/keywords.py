@@ -4,10 +4,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 
 def preprocess_text_spacy(text, nlp):
-    """
-    Preprocesa texto usando spaCy para extraer sustantivos, nombres propios y adjetivos.
-    """
-    if not text:  # Manejar casos de texto vacío o nulo
+
+    if not text:  
         return ""
     try:
         doc = nlp(text)
@@ -18,23 +16,18 @@ def preprocess_text_spacy(text, nlp):
         return ""
 
 def extract_keywords_per_document(row_idx, tfidf_matrix, feature_names, max_keywords=10):
-    """
-    Extrae las palabras clave más relevantes para un documento.
-    """
+
     row_vector = tfidf_matrix[row_idx].toarray().flatten()
     sorted_indices = row_vector.argsort()[::-1]
     keywords = [feature_names[idx] for idx in sorted_indices[:max_keywords]]
     return keywords
 
 def generate_keywords(df, batch_size=1000):
-    """
-    Genera palabras clave para los títulos y abstracts en un DataFrame, procesándolos juntos.
-    """
+
     print("Preprocesando texto con spaCy para palabras clave...")
     nlp = spacy.load("en_core_web_md")
     tqdm.pandas()
 
-    # Combinar título y abstract temporalmente para procesamiento
     combined_texts = (df['title'].fillna("") + " " + df['abstract'].fillna("")).tolist()
 
     processed_texts = []
