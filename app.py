@@ -38,6 +38,9 @@ def get_search_engine():
 st.title("📚 Buscador de investigación académica")
 st.markdown("---")
 
+# Crear instancia del motor (se mantiene en caché)
+engine = get_search_engine()
+
 # Crear dos columnas
 left_col, right_col = st.columns([1, 1])
 
@@ -46,7 +49,6 @@ with left_col:
     st.markdown("### 👁 Investigador:")
     query = st.text_input("", placeholder="Introduce tu consulta...")
     search_button = st.button("🔍 Buscar", type="primary", use_container_width=True)
-    engine = get_search_engine()
 
     # Procesar la búsqueda y mostrar respuesta del sistema
     if search_button and query:

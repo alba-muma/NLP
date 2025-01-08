@@ -4,7 +4,7 @@ import pickle
 import faiss
 from bbdd_rag.create_vector_db import load_data, create_index
 from bbdd_rag.search import SemanticSearch
-from llm_response.generate_response import generate_text, read_prompt, get_input_tokens
+from llm_response.generate_response import global_llm, read_prompt
 from language_translation.translation_utils import process_input, process_output
 
 class SearchEngine:
@@ -29,8 +29,9 @@ class SearchEngine:
             with open('./bbdd_rag/arxiv_data.pkl', 'wb') as f:
                 pickle.dump(df, f)
         
-        # Inicializar sistema de búsqueda
+        # Inicializar sistema de búsqueda y LLM
         self.searcher = SemanticSearch()
+        self.llm = global_llm
 
     def process_query(self, query):
         """
@@ -50,7 +51,6 @@ class SearchEngine:
         cond_1 = len(query.strip()) >= 20
         cond_2 = len(re.findall(r'[a-zA-Z\u00C0-\u00FF]', query)) / len(query.strip()) >= 0.4
         if cond_1 and cond_2:
-            print('1')
             query_en, original_lang = process_input(query)
             if original_lang and original_lang != 'en':
                 query_for_search = query_en
@@ -60,7 +60,6 @@ class SearchEngine:
                     "translated_query": query_en
                 }
             else:
-                print('1.1')
                 language_info = {
                     "detected": True,
                     "lang": 'en',
@@ -68,7 +67,6 @@ class SearchEngine:
                 }
                 query_for_search = query
         else:
-            print('2')
             if not cond_1:
                 language_info = {
                     "detected": False,
@@ -128,7 +126,7 @@ class SearchEngine:
             full_prompt = prompt_base + '\n' + user_query + '\n' + "Response:"
             
             # Generar respuesta
-            response = generate_text(max_length=get_input_tokens(full_prompt), prompt=full_prompt)
+            response = self.llm.generate_text(max_length=self.llm.get_input_tokens(full_prompt), prompt=full_prompt)
         
             # Traducir respuesta si la query no estaba en inglés
             if language_info.get("detected", False):

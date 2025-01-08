@@ -16,17 +16,32 @@ class LLMManager:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(LLMManager, cls).__new__(cls)
-            cls._instance._initialize()
+            cls._instance._initialized = False
         return cls._instance
     
-    def _initialize(self):
-        # Ruta al modelo descargado
+    def __init__(self):
+        if self._initialized:
+            return
+            
+        self.model = None
+        self.tokenizer = None
         self.model_path = 'C:\\Users\\U01A40E5\\.cache\\huggingface\\hub\\models--meta-llama--Llama-3.2-1B\\snapshots\\4e20de362430cd3b72f300e6b0f18e50e7166e08'
         
         # Configurar cuantización de 8 bits
-        quantization_config = BitsAndBytesConfig(
+        self.quantization_config = BitsAndBytesConfig(
             load_in_8bit=True,
         )
+        
+        self._initialize()
+        self._initialized = True
+    
+    def _initialize(self):
+        """
+        Inicializa el modelo y el tokenizer
+        """
+        # Cargar tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         
         # Intentar cargar el modelo en GPU con bitsandbytes
         try:
@@ -35,7 +50,7 @@ class LLMManager:
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
                 device_map="auto",
-                quantization_config=quantization_config
+                quantization_config=self.quantization_config
             )
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         except Exception as e:
@@ -49,90 +64,68 @@ class LLMManager:
 
         print(f'Llama-3.2-1B cargado en {self.device}')
 
-        # Cargar el tokenizador
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
-
+    def get_input_tokens(self, prompt):
+        """
+        Obtiene el número de tokens de entrada para el prompt
+        """
+        return len(self.tokenizer.encode(prompt))
+    
     def generate_text(self, prompt, max_length, max_new_tokens=300):
         """
-        Genera texto basado en un prompt.
-        
-        Args:
-            prompt (str): Texto de entrada
-            max_length (int): Longitud máxima de la generación
-            max_new_tokens (int): Número máximo de tokens nuevos
-        
-        Returns:
-            str: Texto generado
+        Genera texto usando el modelo
         """
-        # Limpiar y formatear el prompt
-        prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
+        try:
+            # Limpiar y formatear el prompt
+            prompt = prompt.strip().encode('utf-8', errors='ignore').decode('utf-8')
 
-        # Tokenizar con longitud limitada
-        inputs = self.tokenizer(
-            prompt,
-            return_tensors="pt",
-            truncation=True,
-            max_length=max_length,
-            padding=True
-        ).to(self.device)
+            # Tokenizar con longitud limitada
+            inputs = self.tokenizer(
+                prompt,
+                return_tensors="pt",
+                truncation=True,
+                max_length=max_length,
+                padding=True
+            ).to(self.device)
 
-        # Generar respuesta
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                temperature=0.1,
-                # top_p=0.9,
-                num_beams=3,
-                early_stopping=True,
-                pad_token_id=self.tokenizer.eos_token_id,
-                tokenizer=self.tokenizer
-            )
+            # Generar respuesta
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=True,
+                    temperature=0.1,
+                    # top_p=0.9,
+                    num_beams=3,
+                    early_stopping=True,
+                    pad_token_id=self.tokenizer.eos_token_id,
+                    tokenizer=self.tokenizer
+                )
 
-        # Decodificar y limpiar la respuesta
-        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        response = response.split('Response:')[4].split('<STOP>')[0]
-        
-        return response
-
-    def get_input_tokens(self, full_prompt):
-        """
-        Calcula el número de tokens necesarios para el prompt.
-        
-        Args:
-            full_prompt (str): Texto del prompt
-        
-        Returns:
-            int: Número de tokens
-        """
-        tokens = self.tokenizer.encode(full_prompt)
-        return len(tokens)
-
-def read_prompt(prompt_file):
-    """
-    Lee el contenido de un archivo de prompt.
-    
-    Args:
-        prompt_file (str): Ruta al archivo de prompt
-    
-    Returns:
-        str: Contenido del prompt
-    """
-    with open(prompt_file, 'r', encoding='utf-8') as f:
-        content = f.read().strip()
-    return content
+            # Decodificar y retornar la respuesta
+            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            response = response.split('Response:')[4].split('<STOP>')[0]
+            return response
+            
+        except Exception as e:
+            print(f"Error en la generación: {str(e)}")
+            return ""
 
 # Crear una instancia global del LLMManager
-llm_manager = LLMManager()
+global_llm = LLMManager()
 
-# Funciones de conveniencia que usan el singleton
+def read_prompt(prompt_path):
+    """
+    Lee un prompt desde un archivo
+    """
+    with open(prompt_path, 'r', encoding='utf-8') as f:
+        return f.read().strip()
+
+# Funciones helper que usan la instancia global
 def generate_text(prompt, max_length, max_new_tokens=300):
-    return llm_manager.generate_text(prompt, max_length, max_new_tokens)
+    return global_llm.generate_text(prompt, max_length, max_new_tokens)
 
-def get_input_tokens(full_prompt):
-    return llm_manager.get_input_tokens(full_prompt)
+def get_input_tokens(prompt):
+    return global_llm.get_input_tokens(prompt)
 
 if __name__ == "__main__":
     # Vaciar la memoria de la GPU
