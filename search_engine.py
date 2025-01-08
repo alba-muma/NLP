@@ -114,7 +114,7 @@ class SearchEngine:
             if original_lang and original_lang != 'en':
                 response = process_output(response, original_lang)
         elif len(papers_dict["papers"]) == 1:
-            response = f"{papers_dict["papers"][0]["title"]} is relevant to your research interest. Remember, you can try expanding your search in other databases."
+            response = f'\"{papers_dict["papers"][0]["title"]}\" is relevant to your research interest. Remember, you can try expanding your search in other databases.'
             # Traducir respuesta si la query no estaba en inglés
             if original_lang and original_lang != 'en':
                 response = process_output(response, original_lang)
@@ -123,7 +123,7 @@ class SearchEngine:
         
             # Generar el prompt completo
             user_query = f"{papers_dict}\nUser: {query_for_search}"
-            full_prompt = prompt_base + '\n' + user_query + '\n' + "Response:"
+            full_prompt = prompt_base + '\n' + user_query + '\n' + f"Response: I have found several relevant articles, including \"{papers_dict["papers"][0]["title"]}\" and \"{papers_dict["papers"][1]["title"]}\". These works "
             
             # Generar respuesta
             response = self.llm.generate_text(max_length=self.llm.get_input_tokens(full_prompt), prompt=full_prompt)
