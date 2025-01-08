@@ -17,13 +17,13 @@ class SemanticSearch:
             # Liberar memoria
             gc.collect()
             
-            print("Cargando modelo de embeddings...")
+            # print("Cargando modelo de embeddings...")
             self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cuda')
             
-            print("Cargando índice FAISS...")
+            # print("Cargando índice FAISS...")
             self.index = faiss.read_index('./bbdd_rag/arxiv_index.faiss')
             
-            print("Cargando BBDD...")
+            # print("Cargando BBDD...")
             with open('./bbdd_rag/arxiv_data.pkl', 'rb') as f:
                 self.df = pickle.load(f)
                 

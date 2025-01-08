@@ -1,4 +1,5 @@
 import streamlit as st
+
 # Configuración de la página - DEBE SER LA PRIMERA LLAMADA A STREAMLIT
 st.set_page_config(
     page_title="Buscador de investigación académica",
@@ -30,16 +31,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Inicializar el motor de búsqueda
-@st.cache_resource
+@st.cache_resource()
 def get_search_engine():
     return SearchEngine()
 
 # Título principal
 st.title("📚 Buscador de investigación académica")
 st.markdown("---")
-
-# Crear instancia del motor (se mantiene en caché)
-engine = get_search_engine()
 
 # Crear dos columnas
 left_col, right_col = st.columns([1, 1])
@@ -55,6 +53,7 @@ with left_col:
         start_time = time.time()  # Iniciar temporizador
         with st.spinner("Procesando tu consulta..."):
             try:
+                engine = get_search_engine()
                 results = engine.process_query(query)
                 
                 # Mostrar información del idioma si existe

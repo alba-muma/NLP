@@ -19,7 +19,7 @@ def load_data(num_samples=5000):
     Args:
         num_samples: Número de muestras a cargar (None para cargar todo)
     """
-    print(f"Cargando {num_samples if num_samples else 'todos los'} artículos del archivo JSON...")
+    # print(f"Cargando {num_samples if num_samples else 'todos los'} artículos del archivo JSON...")
     with open('./bbdd_rag/arxiv-metadata-oai-snapshot.json', 'r') as file:
         data = []
         abstracts = []
@@ -37,7 +37,7 @@ def load_data(num_samples=5000):
             })
 
         # Procesar resúmenes en paralelo
-        print("Generando resúmenes en paralelo...")
+        # print("Generando resúmenes en paralelo...")
         batch_size = 4  # Tamaño de lote reducido para evitar problemas de memoria
         
         # Inicializar summarizer
@@ -56,13 +56,13 @@ def load_data(num_samples=5000):
         for i, summary in enumerate(summaries):
             data[i]['summary'] = summary
         
-        print("Convirtiendo a DataFrame...")
+        # print("Convirtiendo a DataFrame...")
         df = pd.DataFrame(data)
         
-        print("Generando keywords...")
+        # print("Generando keywords...")
         df = generate_keywords(df)
 
-        print("Generando categorías...")
+        # print("Generando categorías...")
         df = perform_topic_modeling(df)
 
         df.to_csv('./bbdd_rag/output.csv', index=False)
@@ -75,7 +75,7 @@ def create_index(df):
     Args:
         df: DataFrame con los datos
     """
-    print("Inicializando modelo de embeddings...")
+    # print("Inicializando modelo de embeddings...")
     if torch.cuda.is_available():
         device = "cuda"
     else:
@@ -83,7 +83,7 @@ def create_index(df):
     model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
     
     
-    print("Generando embeddings para los artículos...")
+    # print("Generando embeddings para los artículos...")
     embeddings = []
     for _, row in tqdm(df.iterrows(), total=len(df)):
         # Combinar los elementos de la lista 'keywords' en una cadena separada por espacios
@@ -97,7 +97,7 @@ def create_index(df):
     # Convertir la lista de embeddings a un array de numpy
     embeddings = np.array(embeddings, dtype='float32')
     
-    print("Creando índice FAISS...")
+    # print("Creando índice FAISS...")
     # Crear índice
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
@@ -123,12 +123,12 @@ def main():
         # Crear índice
         index = create_index(df)
     
-        print("Guardando índice y datos...")
+        # print("Guardando índice y datos...")
         # Guardar índice
         faiss.write_index(index, './bbdd_rag/arxiv_index.faiss')
         
-        print("¡Proceso completado exitosamente!")
-        print(f"Número de artículos procesados: {len(df)}")
+        # print("¡Proceso completado exitosamente!")
+        # print(f"Número de artículos procesados: {len(df)}")
         
     except Exception as e:
         print(f"Error durante el proceso: {str(e)}")

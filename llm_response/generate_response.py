@@ -46,7 +46,7 @@ class LLMManager:
         # Intentar cargar el modelo en GPU con bitsandbytes
         try:
             torch.cuda.empty_cache()
-            print('Cargando Llama-3.2-1B...')
+            # print('Cargando Llama-3.2-1B...')
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
                 device_map="auto",
@@ -62,7 +62,7 @@ class LLMManager:
             else:
                 self.device = "cpu"
 
-        print(f'Llama-3.2-1B cargado en {self.device}')
+        # print(f'Llama-3.2-1B cargado en {self.device}')
 
     def get_input_tokens(self, prompt):
         """

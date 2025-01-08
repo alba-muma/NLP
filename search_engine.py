@@ -20,7 +20,7 @@ class SearchEngine:
         """
         # Check if the index exists; otherwise, create it
         if not os.path.exists('./bbdd_rag/arxiv_index.faiss') or not os.path.exists('./bbdd_rag/arxiv_data.pkl'):
-            print("Creando índice FAISS y base de datos vectorial...")
+            # print("Creando índice FAISS y base de datos vectorial...")
             df = load_data()
             index = create_index(df)
             
