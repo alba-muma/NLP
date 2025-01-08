@@ -35,11 +35,15 @@ class SemanticSearch:
     
     def extract_keywords(self, text):
         """Extrae keywords usando spaCy"""
+        # Lista de palabras a excluir
+        exclude_words = {'paper', 'papers'}
+        
         doc = self.nlp(text.lower())
-        # Obtener sustantivos y adjetivos relevantes
+        # Obtener sustantivos y adjetivos relevantes, excluyendo las palabras de la lista
         keywords = [token.text for token in doc 
-                   if (token.pos_ in ['NOUN', 'PROPN', 'ADJ']) 
-                   and not token.is_stop]
+                    if (token.pos_ in ['NOUN', 'PROPN', 'ADJ']) 
+                    and not token.is_stop 
+                    and token.text not in exclude_words]
         return ' '.join(keywords)
 
     def search(self, query):
