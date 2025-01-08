@@ -33,7 +33,7 @@ Implementa la interfaz web usando Streamlit:
 
 ## Requisitos
 
-1. Python 3.10+
+1. Python 3.12.6
 2. Suficiente espacio en disco (el dataset es grande)
 
 ## Configuración
